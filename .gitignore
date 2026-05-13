@@ -222,3 +222,6 @@ __marimo__/
 
 # PyCharm
 .idea/
+
+# macOS
+.DS_Store
