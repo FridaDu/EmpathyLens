@@ -24,6 +24,9 @@ logic here — that comes in Week 7+ when we build the evaluation pipeline.
 读取的格式输出。这里不做评估逻辑 —— 评估在 Week 7+ 评估管道阶段。
 """
 
+from dotenv import load_dotenv
+load_dotenv()
+
 import argparse
 import json
 import os
