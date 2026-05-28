@@ -41,12 +41,14 @@ from src.prompts.cultural_prompts import CULTURAL_PROMPTS, PROMPT_VERSION
 # ---------- Model configuration / 模型配置 -------------------------------
 # Kept in one place so Week 5+ ablations can swap model/temperature easily.
 # 集中在一处,Week 5+ 做消融可以一键切换 model/temperature。
-DEFAULT_MODEL = "claude-sonnet-4-5"
+DEFAULT_MODEL = "claude-opus-4-6"
 DEFAULT_TEMPERATURE = 0.7   # framework leaves T choice to ablation (Week 7-9)
 DEFAULT_MAX_TOKENS = 600    # longer than typical chat but allows full emotional response
 # -----------------------------------------------------------------------
 
-
+# TODO (Week 8): extract a multi-provider llm_client (openai/anthropic/deepseek)
+#   for the evaluation pipeline. Week 4 CLI only needs one provider.
+# TODO (Week 8): 抽一个多-provider 的 llm_client 供评估管道用。Week 4 只需单一 provider。
 def call_model(system_prompt: str, user_text: str,
                model: str = DEFAULT_MODEL,
                temperature: float = DEFAULT_TEMPERATURE,
@@ -76,6 +78,9 @@ def call_model(system_prompt: str, user_text: str,
 
     client = Anthropic()
     t_start = time.time()
+    # Thinking mode is OFF (Anthropic defaults to no extended thinking unless
+    # the `thinking` param is passed). Matches Week 2 decision (methodology_notes §2).
+    # thinking 模式关闭(Anthropic 不传 thinking 参数即默认关闭),符合 Week 2 决策。
     msg = client.messages.create(
         model=model,
         max_tokens=max_tokens,
@@ -96,6 +101,7 @@ def call_model(system_prompt: str, user_text: str,
         "model": model,
         "temperature": temperature,
         "max_tokens": max_tokens,
+        "thinking_mode": "disabled",
         "stop_reason": msg.stop_reason,
         "input_tokens": msg.usage.input_tokens,
         "output_tokens": msg.usage.output_tokens,

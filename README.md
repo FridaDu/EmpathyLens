@@ -3,7 +3,7 @@
 > A cross-cultural evaluation and prototype system for AI emotional companionship across Chinese, German, and English.
 > *跨文化 AI 情感陪伴评估与原型系统(中 / 德 / 英)*
 
-**Status:** Phase 1, Week 2 of 22 (research foundations)
+**Status:** Phase 1, Week 4 of 22 (research foundations)
 **Started:** 2026-04-20 · **Target completion:** 2026-09-20
 
 **Authors:** Frida Du (Feifan Du) · Helena Cai (Xinyan Cai)
@@ -27,7 +27,7 @@ Mainstream AI emotional companionship products (Character.ai, Replika, Pi, Maoxi
 
 | Phase | Weeks | Focus | Status |
 |---|---|---|---|
-| 1. Foundations | 1–6 | Research questions, MVP, test dataset | In progress (Week 2) |
+| 1. Foundations | 1–6 | Research questions, MVP, test dataset | In progress (Week 4) |
 | 2. Technical Core | 7–15 | Prompt iteration, LLM-as-a-Judge, RAG, web app | — |
 | 3. Product & Writing | 16–22 | Deployment, paper, arXiv submission | — |
 
@@ -44,11 +44,16 @@ Mainstream AI emotional companionship products (Character.ai, Replika, Pi, Maoxi
 
 ## Repository Structure
 
-- `docs/` — methodology decisions, research notes
-  - `methodology_notes.md` — Methodological decision log
+- `docs/` — methodology decisions and research notes
+  - `methodology_notes.md` — cross-week methodological decision log
+  - `prompt_engineering_basics.md` — prompt-engineering learning note (Week 4)
+  - `week4_mvp_notes.md` — Week 4 MVP design decisions
 - `src/` — source code
-  - `api_calls/mvp.py` — Tri-provider tri-language MVP
-- `results/` — experiment output JSONs (auto-generated)
+  - `prompts/cultural_prompts.py` — three cultural-mode system prompts (zh / de / en)
+  - `cli/empathy_cli.py` — Week 4 CLI: one input → three cultural-mode responses
+  - `tests/test_inputs.py` — 5 test inputs (seed for the Week 5–6 dataset)
+  - `api_calls/mvp.py` — Week 2 tri-provider MVP (superseded by the CLI)
+- `results/` — experiment output JSONs
 - `.env.example` — template for API keys (real `.env` is gitignored)
 - `requirements.txt` — Python dependencies
 
@@ -79,13 +84,17 @@ ANTHROPIC_API_KEY=sk-ant-...
 DEEPSEEK_API_KEY=sk-...
 ```
 
-**4. Run the MVP:**
+**4. Run the MVP (Week 4 CLI):**
 
 ```bash
-python src/api_calls/mvp.py
+# Batch: run all 5 test inputs through the three cultural modes, save to results/
+python -m src.cli.empathy_cli --batch
+
+# Or respond to a single disclosure interactively
+python -m src.cli.empathy_cli --text "我妈又催我相亲了,烦死了。"
 ```
 
-This generates emotional-companionship responses in three languages (zh/de/en) using three providers, and writes the full record to `results/`.
+This sends each input through the three cultural-mode system prompts (zh / de / en) using a single provider (Claude Opus 4.6), and writes the full record to `results/`.
 
 ---
 

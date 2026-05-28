@@ -41,7 +41,7 @@
 | `timestamp_utc` | ISO 8601 时间戳 |
 | `prompt_version` | 来自 `cultural_prompts.py` 的 `PROMPT_VERSION`(目前 `v1`) |
 | `model` · `temperature` | 实验配置 |
-| `responses` | `{mode: {response_text, model, temperature, max_tokens, stop_reason, input_tokens, output_tokens, latency_sec}}` |
+| `responses` | `{mode: {response_text, model, temperature, max_tokens, thinking_mode, stop_reason, input_tokens, output_tokens, latency_sec}}` |
 | `test_item` | 测试元数据:`id` / `lang` / `kind` / `anchor`(framework 段落引用)/ `note` |
 
 **为什么这么设计**:
@@ -56,6 +56,7 @@
 - **API 失败容错**:单条 mode 出错只写 `error` 字段,batch 不会中断 —— 跑 5 × 3 = 15 次调用,任何一次失败都不影响其它结果。
 - **`call_model` 延迟导入 `anthropic`**:这样即使组员没装 SDK / 没设 API key,也能用 CLI 检查 prompt 内容。
 - **`run_one_input` 与 `main` 分离**:Week 5+ 写评估脚本时可以直接 `from src.cli.empathy_cli import run_one_input`,不必走 CLI。
+- **每套 prompt 加显式语言指令**(2026-05-28):zh→中文 / de→德语 / en→英语,无论用户输入什么语言,修复英语模式跟随用户语言"串台"的问题。详见 `methodology_notes.md §6`。
 
 ## 5. 单步 prompt vs 四步显式推理链(留待 Week 7-9)
 

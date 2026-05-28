@@ -22,7 +22,6 @@ A running log of methodological decisions. Each decision records what, why, and 
 **Why not mid- or budget-tier (Sonnet 4.6, GPT-5.4-mini, V4-Flash).** Initial tests with budget-tier models (V4-Flash) produced markedly shorter and stylistically simpler responses, not representative of the capability ceiling consumer companionship products aim to deploy.
 
 **Acknowledged limitation.** Independent assessments (CFR, 2026-04-29) suggest V4-Pro may trail SOTA by 3–6 months on reasoning benchmarks, placing it closer to GPT-5.2 / Opus 4.5 in absolute capability. The paper will frame this as *"each provider's flagship-tier model as positioned by the provider"*, not as a capability-matched comparison.
-
 *中文备注:三家都选自家旗舰主力档,DeepSeek 自己的 paper 把 V4-Pro 与 GPT-5.4/Opus 4.6 对标。GPT-5.5 和 Opus 4.7 不用是因为 DeepSeek 没有对等代际。低档不用是因为输出明显欠缺代表性。*
 
 **References.**
@@ -30,6 +29,8 @@ A running log of methodological decisions. Each decision records what, why, and 
 - Chen, C. (2026). Three reasons why DeepSeek's new model matters. *MIT Tech Review*, 2026-04-24.
 - Horowitz, M. C. (2026). DeepSeek V4 Signals a New Phase in the U.S.–China AI Rivalry. *CFR*, 2026-04-29.
 
+**Lock-in note (2026-05-28).** During Week 4, teammate code temporarily diverged to `claude-sonnet-4-5`. It was corrected back to `claude-opus-4-6`. The model is a **locked** decision: any change updates this section first, then all code, in sync — never the reverse. Mixing models across runs makes results non-comparable.
+*中文备注:Week 4 时有代码一度用了 claude-sonnet-4-5,已改回 claude-opus-4-6。模型是锁定决策——要改先改本节再改代码,两边同步,绝不各写各的。*
 ---
 
 ## 2. Reasoning / Thinking Mode
@@ -75,28 +76,48 @@ For LLM-as-a-Judge (Week 8), thinking may be re-enabled for the judge. To be dec
 
 ## 4. Output Metadata Schema
 
-**Decision (2026-05-02).** Every API call is persisted as JSON with content + run-configuration metadata:
+**Decision (2026-05-02, updated 2026-05-28).** Every run is persisted as JSON with content + full run-configuration metadata.
+
+The Week 2 `mvp.py` used a flat per-call schema (`provider / lang / user_input / ai_response / status`). From Week 4, the canonical format is the one produced by `src/cli/empathy_cli.py` — one record per input, with all three cultural-mode responses nested under it, plus test-item metadata:
 
 ```json
 {
-  "timestamp": "...",
-  "provider": "openai | anthropic | deepseek",
-  "model": "gpt-5.4 | claude-opus-4-6 | deepseek-v4-pro",
-  "thinking_mode": "disabled | enabled",
-  "lang": "zh | de | en",
-  "user_input": "...",
-  "ai_response": "...",
-  "status": "success | error"
+  "user_text": "...",
+  "timestamp_utc": "ISO 8601 (UTC)",
+  "prompt_version": "v1",
+  "model": "claude-opus-4-6",
+  "temperature": 0.7,
+  "responses": {
+    "zh | de | en": {
+      "response_text": "...",
+      "model": "claude-opus-4-6",
+      "temperature": 0.7,
+      "max_tokens": 600,
+      "thinking_mode": "disabled",
+      "stop_reason": "...",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "latency_sec": 0.0
+    }
+  },
+  "test_item": {
+    "id": "...",
+    "lang": "zh | de | en",
+    "kind": "mild_venting | adversarial",
+    "anchor": "framework §...",
+    "note": "..."
+  }
 }
 ```
 
-**Anticipated additions** as the project scales:
-- `prompt_version` (Week 9+)
-- `temperature`, `seed` (Week 8+, if Approach (a) is adopted)
-- `run_index` (Week 8+, under Approach (b))
-- `evaluation_scores` (Week 8+, joined from LLM-as-a-Judge results)
+`prompt_version`, `temperature`, and `thinking_mode` — listed as "anticipated" in the original draft — are **now in use**. Each record is self-contained (config + input + all outputs + test metadata), so the Week 8 evaluation pipeline can consume it without joining other tables.
 
-*中文备注:每条调用都把"在什么配置下产生"记进 JSON。这是可复现性的最低门槛。*
+**Still anticipated** as the project scales:
+- `seed` (Week 8+, only if a fixed-seed approach is adopted — see §3)
+- `run_index` (Week 8+, under repeated-sampling Approach (b))
+- `evaluation_scores` (Week 8+, from LLM-as-a-Judge)
+
+*中文备注:Week 2 的 mvp.py 是扁平 schema;Week 4 起以 empathy_cli 的嵌套格式为准。prompt_version / temperature / thinking_mode 已经在用了,不再是"待加"。*
 
 ---
 
@@ -109,3 +130,22 @@ For LLM-as-a-Judge (Week 8), thinking may be re-enabled for the judge. To be dec
 | 3 | Whether to use a second judge (Cohen's κ) | Week 8 |
 | 4 | Prompt versioning convention | Week 7 |
 | 5 | Inter-rater reliability protocol for human annotation | Week 5 |
+| 6 | Baseline design for measuring the calibration effect: cross-language (English mode) vs within-language (same-language uncalibrated) | Week 7 |
+
+---
+
+## 6. Prompt Engineering Decisions
+
+**Decision (Week 4).** v1 cultural-mode prompts use a **single-step "guideline" form**, not the explicit four-step reasoning chain of framework §6.2.
+
+**Rationale.** Generation runs with thinking disabled (§2). With no hidden-reasoning space, an explicit chain would either print all reasoning (unfit for a companion reply) or be skipped. So the chain's intent is encoded as direct behavioral guidelines. The four-step vs single-step comparison is a Week 7–9 ablation (anticipated by framework §6.2). Week-4 specifics: see `week4_mvp_notes.md §5`.
+
+**Decision (Week 4).** The **English mode is an uncalibrated baseline**, not a gold standard (framework §3.3.2). It represents the model's default American-style behavior and is the reference for the Equitability metric (§5.7). zh/de are deliberately calibrated; en intentionally is not.
+
+**Decision (2026-05-28).** Each prompt carries an **explicit response-language instruction** ("respond in Chinese/German/English regardless of the user's input language").
+
+**Why.** The zh/de prompts, written in their target language, already anchored output strongly; the English prompt (English being the model's neutral register) did not, so the English mode drifted into the user's input language. The explicit instruction makes all three modes language-consistent.
+
+**Nuance for Week 7.** Forcing English output supports the cross-language Equitability comparison (§5.7). But measuring the *within-language* calibration effect (Sub-RQ 2) needs a same-language uncalibrated baseline — a separate baseline to design in Week 7 (§5, pending #6).
+
+*中文备注:v1 用单步准则 prompt(非四步链),因生成关 thinking;英语是未校准基线;每套 prompt 现都加了显式语言指令,修复英语串语言;Week 7 还要定"同语言基线"。*
