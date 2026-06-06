@@ -50,6 +50,11 @@ For LLM-as-a-Judge (Week 8), thinking may be re-enabled for the judge. To be dec
 **Paper draft snippet.**
 > "All three providers were configured with reasoning/thinking disabled, to match the typical deployment of consumer-facing emotional companionship products, which prioritize first-token latency and cost predictability over deliberative reasoning."
 
+**Update (2026-06-06).** OpenAI generation uses the **Responses API**, not Chat Completions:
+- `reasoning={"effort": "none"}` (thinking off) + `max_output_tokens`; read `response.output_text`.
+- Reason: on Chat Completions, gpt-5.4 ignores `reasoning_effort="none"` when `max_completion_tokens` is also set — it reverts to reasoning, burns the token budget, and returns an empty string (documented bug, OpenAI community, 2026-04). OpenAI also recommends the Responses API for reasoning models.
+- **temperature**: GPT-5.x reasoning models do not honor `temperature`, so the OpenAI path omits it (runs at model default); Claude and DeepSeek still use 0.7. Documented as a cross-provider comparability limitation.
+*中文备注:OpenAI 改走 Responses API(effort=none + max_output_tokens);因 gpt-5.4 在 Chat Completions 上 none+max_completion_tokens 有返回空串 bug。GPT 不传 temperature(reasoning 模型不支持),Claude/DeepSeek 仍用 0.7。*
 ---
 
 ## 3. Sampling Variability — Open Question
@@ -132,6 +137,7 @@ The Week 2 `mvp.py` used a flat per-call schema (`provider / lang / user_input /
 | 5 | Inter-rater reliability protocol for human annotation | Week 5 |
 | 6 | Baseline design for measuring the calibration effect: cross-language (English mode) vs within-language (same-language uncalibrated) | Week 7 |
 
+*中文备注:六项待定决策及目标周次;其中 #5(人工标注一致性协议)是 Week 5 要落地的。*
 ---
 
 ## 6. Prompt Engineering Decisions
