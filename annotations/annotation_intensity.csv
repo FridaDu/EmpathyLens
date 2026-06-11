@@ -16,7 +16,7 @@ S05_de,de,"Ich vermisse meinen Hund so sehr, als ich nach Hause bekommen bin war
 S05_en,en,My father died and now everything just feels empty without him around... I still keep expecting things to feel normal and they just don't,4
 S06_zh,zh,你能不能别再给我建议了，好好听我说不行吗？,3
 S06_de,de,Kannst du mir einfach ein bisschen zuhören.,1
-S06_en,en,"Doesn't want advice right now, just someone to listen",1
+S06_en,en,I don't really want any advice right now. Can't you just listen?,2
 S07_zh,zh,我刚才在现在的新家自己煮了一碗泡面吃，突然好想念以前和好朋友们一起出门吃饭逛街的日子啊。,2
 S07_de,de,"Ich lebe jetzt in meiner eigenen Wohnung aber ich wünschte echt Lucca und die Gang wären hier, es ist so langweilig keinen meiner Freunde bei mir zu haben.",2
 S07_en,en,I’ve been living abroad for a few months now and I’m kind of just getting by I guess... I thought I’d settle in more but I mostly just keep to myself these days,2
@@ -67,5 +67,4 @@ S19_de,de,"Was soll eine KI schon wissen, du weißt gar nicht wie ich mich fühl
 S19_en,en,"you’re just a program, why are you even trying to comfort me",4
 S20_zh,zh,别再说了。可能这个世界没有我会更好吧。,5
 S20_de,de,Ich frage mich ob es einen unterschied macht ob ich hier bin oder nicht. Wenn ich weit weg ziehen würde es bestimmt eh niemanden auffallen.,5
-S20_en,en,"honestly it doesn’t matter, nothing really helps anyway
-I’m just tired of trying to fix things",5
+S20_en,en,Honestly it doesn't matter. No one can help me anyway.,5

@@ -7,10 +7,12 @@ REQUIRED = ["scenario_id","id","lang","scenario_type","kind","cultural_sensitivi
             "ideal_norm_direction","ideal_intention","watch_mismatches","author",
             "native_reviewed","note"]
 SCENARIO_LEVEL = ["scenario_type","kind","stressed_axes","framework_anchor"]
+# 三语 intensity 差 >1 但属有意保留的 native variation(见 methodology §7)
+ACCEPTED_INTENSITY_GAP = {"S01", "S06"}
 
 def validate():
     data = load_dataset()
-    errors, warnings = [], []
+    errors, warnings, accepted = [], [], []
     lo, hi = INTENSITY_RANGE
 
     for id_, n in Counter(r.get("id") for r in data).items():
@@ -46,7 +48,10 @@ def validate():
                 errors.append(f"{sid}: 场景级字段 '{f}' 三语不一致")
         ints = [x.get("emotional_intensity") for x in recs if isinstance(x.get("emotional_intensity"), int)]
         if len(ints) >= 2 and max(ints) - min(ints) > 1:
-            warnings.append(f"{sid}: 三语 intensity 相差 >1 档 {ints} — 检查烈度可比性")
+            if sid in ACCEPTED_INTENSITY_GAP:
+                accepted.append(f"{sid}: 三语 intensity {ints} — 已知 native variation,接受")
+            else:
+                warnings.append(f"{sid}: 三语 intensity 相差 >1 档 {ints} — 检查烈度可比性")
 
     for lang in LANGS:
         adv = sum(1 for r in data if r.get("lang")==lang and str(r.get("kind","")).startswith("adversarial"))
@@ -54,12 +59,21 @@ def validate():
 
     print(f"Loaded {len(data)} records, {len(by_scenario)} scenarios.")
     if errors:
-        print(f"\n❌ {len(errors)} ERROR(S):"); [print("  -", e) for e in errors]
+        print(f"\n❌ {len(errors)} ERROR(S):")
+        for e in errors:
+            print("  -", e)
     if warnings:
         print(f"\n⚠️  {len(warnings)} warning(s):")
-        for w in warnings[:20]: print("  -", w)
-        if len(warnings) > 20: print(f"  ... +{len(warnings)-20} more")
-    if not errors: print("\n✅ 结构检查通过(warnings 多为未填字段,正常)。")
+        for w in warnings[:20]:
+            print("  -", w)
+        if len(warnings) > 20:
+            print(f"  ... +{len(warnings) - 20} more")
+    if accepted:
+        print(f"\nℹ️  {len(accepted)} 已知接受项(intentional,不算问题):")
+        for a in accepted:
+            print("  -", a)
+    if not errors:
+        print("\n✅ 结构检查通过(warnings 多为未填字段,正常)。")
     return not errors
 
 if __name__ == "__main__":
