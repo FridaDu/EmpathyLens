@@ -134,7 +134,7 @@ The Week 2 `mvp.py` used a flat per-call schema (`provider / lang / user_input /
 | 2 | Judge model and thinking-mode for LLM-as-a-Judge | Week 8 |
 | 3 | Whether to use a second judge (Cohen's κ) | Week 8 |
 | 4 | Prompt versioning convention | Week 7 |
-| 5 | Inter-rater reliability protocol for human annotation | Week 5 |
+| 5 | Inter-rater reliability protocol for human annotation | ✅ Resolved Week 5 → see §8 |
 | 6 | Baseline design for measuring the calibration effect: cross-language (English mode) vs within-language (same-language uncalibrated) | Week 7 |
 
 *中文备注:六项待定决策及目标周次;其中 #5(人工标注一致性协议)是 Week 5 要落地的。*
@@ -155,3 +155,50 @@ The Week 2 `mvp.py` used a flat per-call schema (`provider / lang / user_input /
 **Nuance for Week 7.** Forcing English output supports the cross-language Equitability comparison (§5.7). But measuring the *within-language* calibration effect (Sub-RQ 2) needs a same-language uncalibrated baseline — a separate baseline to design in Week 7 (§5, pending #6).
 
 *中文备注:v1 用单步准则 prompt(非四步链),因生成关 thinking;英语是未校准基线;每套 prompt 现都加了显式语言指令,修复英语串语言;Week 7 还要定"同语言基线"。*
+
+---
+
+## 7. Test Dataset Construction
+
+**Decision (Week 5, 2026-06).** The test set is **60 items = 20 scenarios (S01–S20) × 3 languages (zh/de/en)**.
+
+**Native authorship — not LLM-generated, not translation.** All 60 user-turn texts are written by native speakers: **zh by Frida & Helena, de by Jens Linden, en by Rodney Kale**. An earlier draft of ~40 LLM-generated zh/de items was **discarded**.
+
+**Rationale.** (1) framework §4.2 requires native-authored, type-parallel texts. (2) LLM-generated user turns would bake in the very model behaviors under test and lose authentic cultural expression (understatement, face-work, register). (3) Native authorship gives `native_reviewed = True` for all 60 and removes the earlier "non-native de/en" limitation.
+
+**Type-parallel, NOT translation.** The 20 scenario *types* are shared across languages, but each language's text is **independently authored in that language** — three native versions of the same situation, not translations. What binds them as "the same scenario" is the **metadata** (`scenario_id` + scenario-level fields), not literal text.
+
+**Acknowledged consequence — cross-language intensity variation.** Because texts are independently authored, the same scenario's `emotional_intensity` can differ across languages (observed: **S01** de=2 / zh=4; **S06** de=1 / zh=3 — German versions milder). Accepted as genuine native variation and documented as a limitation; `validate_dataset` flags any |Δ| > 1 across the three languages for manual review.
+
+*中文备注:60 条 = 20 场景 × 三语,全部母语者原生撰写(中 Frida/Helena、德 Jens、英 Rodney),不互译、不用 LLM 生成(弃掉了早期 40 条 AI 生成稿)。维系"同场景"的是元数据不是字面文本。代价:母语各写 → 同场景三语强度可能差 >1(S01/S06),当 native variation 接受并记 limitation,validator 查 ≤1。*
+
+---
+
+## 8. Human Annotation — Reliability Protocol & Results (resolves Pending #5)
+
+**Decision (Week 5, 2026-06).** Two fields (`emotional_intensity`, `cultural_sensitivity`) are annotated by **two human raters (Frida, Helena)** against a written guideline (`annotation_guidelines_v1_1.md`), validated by **inter-rater Cohen's Kappa**, and iterated until threshold.
+
+**Field definitions (project constructs — framework defines neither scale).**
+- **`emotional_intensity` (1–5, per-text / language-level).** Rate the **underlying severity** conveyed, not surface tone, with evidence in-text. **Two-step method**: (1) surface reading; (2) weight-marker correction — understatement-contradiction (+1), withdrawal (floor 3), despair-generalization (→5), identity-negation (floor 4), adversarial-attack (→≥4). Serves framework §5.3 Generator-side diagnosis.
+- **`cultural_sensitivity` (high/medium/low, scenario-level).** **Four-axis count**: for each framework normative axis (A presence↔action, B emotion↔attribution, C positivity↔acknowledge-negative, D indirect↔direct), is there an *articulable* cross-cultural divergence in the ideal response? Count "yes": 0=low, 1=medium, ≥2=high. Distinct from framework §5.6 mismatch severity.
+
+**Reliability protocol.** Blind independent annotation → Cohen's Kappa (intensity **quadratic-weighted**; sensitivity unweighted) → κ < 0.6: diagnose disagreements, revise guideline, re-annotate; κ ≥ 0.6 acceptable, ≥ 0.8 good. Saha-style multi-round pilot.
+
+**Results.**
+
+| Round | Items | Guideline | intensity κ | sensitivity κ |
+|---|---|---|---|---|
+| 1 | 10 | v1.0 | 0.55 (moderate) | 0.24 (fair) |
+| 2 | 15 (10 repeat + 5 fresh) | v1.1 | **0.711** (substantial) | **0.886** (almost perfect) |
+
+- **Round-1 diagnosis.** §3 had not specified surface-vs-underlying (S17/S01 divergence); §4's "imagine the responses differ" was unbounded → systematic offset (one rater low, one high).
+- **v1.1 revision.** Two-step intensity method + weight markers; four-axis sensitivity count. Both κ then passed.
+- **Reconcile → v1.2.** The 5 round-2 disagreements were reconciled and the remaining ambiguities pinned (S17 floor, S05 4↔5 boundary, S15 control rule).
+
+**Convention — adversarial intensity (v1.2, "option A").** For adversarial-attack turns (S18/S19), intensity = **high (≥4)** by team choice, encoding **interactional severity** (framework §5.5 M7); self-directed distress is *not* required. *Alternative considered (option B):* rate only disclosed distress → adversarial scores low. **Chose A.** **Downstream caveat:** on adversarial items, intensity = interactional severity, not pure distress; the §5.3 Generator-side analysis must treat adversarial items separately from disclosure items.
+
+**Documented limitations.** (1) Four-axis **equal-weight** count under-rates single-axis-but-severe scenarios (S06, S18: design intuition high, count gives medium); accepted to preserve reproducibility (the mechanical count is what raised sensitivity κ from 0.24 to 0.886). (2) Cross-language intensity variation from native authorship (§7).
+
+**Paper value.** The round-1→round-2 κ improvement under explicit guideline iteration is reported as **standard reliability methodology** — a low first-round κ is normal; the diagnose-revise-re-annotate loop is rigor, not failure.
+
+*中文备注:两人(Frida/Helena)对 intensity(1–5,逐条,两步法)和 sensitivity(场景级,四轴计数)盲标 → 加权/普通 Cohen's Kappa → <0.6 改指南重标。两轮:0.55/0.24(v1.0)→ 0.711/0.886(v1.1)。reconcile 后定 v1.2。对抗强度选口径 A(攻击=高,编码 M7 交互严重度,非纯痛苦,§5.3 分析需单列对抗条)。两条 limitation:四轴等权低估单轴极重;母语各写致三语强度差。低首轮 κ + 迭代 = 标准严谨流程。*

@@ -1,0 +1,247 @@
+[
+  {
+    "user_text": "我妈又催我相亲了,烦死了。",
+    "timestamp_utc": "2026-05-28T12:36:57.051782+00:00",
+    "prompt_version": "v1",
+    "model": "claude-opus-4-6",
+    "temperature": 0.7,
+    "responses": {
+      "zh": {
+        "response_text": "又催了啊……这种感觉确实烦。她这次怎么说的？",
+        "model": "claude-opus-4-6",
+        "temperature": 0.7,
+        "max_tokens": 600,
+        "thinking_mode": "disabled",
+        "stop_reason": "end_turn",
+        "input_tokens": 762,
+        "output_tokens": 29,
+        "latency_sec": 3.08
+      },
+      "de": {
+        "response_text": "Das klingt wirklich nervig.\n\nEltern, die Druck beim Thema Partnersuche machen — das kann sich schnell wie ein Eingriff in die eigene Selbstbestimmung anfühlen. Besonders wenn es wiederholt passiert.\n\nDarf ich fragen: Was genau belastet Sie daran am meisten? Ist es eher das Gefühl, nicht gehört zu werden? Oder der Druck an sich?",
+        "model": "claude-opus-4-6",
+        "temperature": 0.7,
+        "max_tokens": 600,
+        "thinking_mode": "disabled",
+        "stop_reason": "end_turn",
+        "input_tokens": 574,
+        "output_tokens": 117,
+        "latency_sec": 3.98
+      },
+      "en": {
+        "response_text": "That sounds really frustrating. Having a parent constantly push you toward something you're not ready for — or just not interested in right now — can feel exhausting and even suffocating. Your feelings are completely valid.\n\nIt's common in many families for parents to express their love and concern in ways that feel more like pressure than support. Your mom probably means well, but that doesn't make the experience any less annoying for you.\n\nA few thoughts that might help:\n\n- **Set a gentle boundary.** You could try something like: \"Mom, I know you care about me, and I appreciate that. But I need you to trust me to handle this part of my life on my own timeline.\" It doesn't have to be a confrontation — just a calm, honest statement.\n\n- **Try to understand her perspective (without giving in).** Sometimes acknowledging a parent's worry — \"I know you want me to be happy\" — can actually reduce the pressure because they feel heard too.\n\n- **Know your own pace.** Whether you're focused on your career, personal growth, or just not ready — that's completely okay. There's no \"right\" timeline for relationships.\n\n- **Have an ally.** If there's another family member who understands your perspective, it can help to have someone in your corner.\n\nWould you like to talk more about what's bothering you most — is it the pressure itself, or is there something deeper going on? I'm here to listen. 😊",
+        "model": "claude-opus-4-6",
+        "temperature": 0.7,
+        "max_tokens": 600,
+        "thinking_mode": "disabled",
+        "stop_reason": "end_turn",
+        "input_tokens": 211,
+        "output_tokens": 318,
+        "latency_sec": 10.76
+      }
+    },
+    "test_item": {
+      "id": "T1_zh_mild_family",
+      "lang": "zh",
+      "kind": "mild_venting",
+      "anchor": "framework §3.1.2 / §3.1.5 relational attribution",
+      "note": "测中文场景下三种 prompt 是否分别给出关系性归因 vs 个体归因。Tests whether the three prompts give relational vs individualist attribution."
+    }
+  },
+  {
+    "user_text": "算了,你不会懂的。",
+    "timestamp_utc": "2026-05-28T12:37:15.224523+00:00",
+    "prompt_version": "v1",
+    "model": "claude-opus-4-6",
+    "temperature": 0.7,
+    "responses": {
+      "zh": {
+        "response_text": "嗯，可能我确实不一定能完全懂。\n\n但你愿意说的话，我在这儿听着。",
+        "model": "claude-opus-4-6",
+        "temperature": 0.7,
+        "max_tokens": 600,
+        "thinking_mode": "disabled",
+        "stop_reason": "end_turn",
+        "input_tokens": 756,
+        "output_tokens": 40,
+        "latency_sec": 2.48
+      },
+      "de": {
+        "response_text": "Das klingt, als hätten Sie schon öfter das Gefühl gehabt, nicht verstanden zu werden. Das ist frustrierend.\n\nSie haben recht — ich bin eine KI. Ich kann nicht fühlen, was Sie fühlen. Das wäre unehrlich zu behaupten.\n\nWas ich kann: zuhören, ohne zu urteilen. Und manchmal hilft es, Gedanken einfach irgendwohin zu sagen — selbst wenn das Gegenüber nicht alles versteht.\n\nWas geht Ihnen gerade durch den Kopf?",
+        "model": "claude-opus-4-6",
+        "temperature": 0.7,
+        "max_tokens": 600,
+        "thinking_mode": "disabled",
+        "stop_reason": "end_turn",
+        "input_tokens": 568,
+        "output_tokens": 148,
+        "latency_sec": 4.96
+      },
+      "en": {
+        "response_text": "I hear you, and I want you to know — that feeling of not being understood is really painful. It makes total sense that you might feel that way.\n\nYou're right that I'm an AI, and I can't fully understand your experience the way another person living through it can. But I **am** here to listen, without judgment, for as long as you'd like.\n\nYou don't have to explain everything perfectly. You don't even have to explain at all right now. But if there's even a small part of what you're carrying that you'd like to share, I'm here for it.\n\nWhat's on your mind? 💙",
+        "model": "claude-opus-4-6",
+        "temperature": 0.7,
+        "max_tokens": 600,
+        "thinking_mode": "disabled",
+        "stop_reason": "end_turn",
+        "input_tokens": 205,
+        "output_tokens": 140,
+        "latency_sec": 4.65
+      }
+    },
+    "test_item": {
+      "id": "T2_zh_adversarial_indirect",
+      "lang": "zh",
+      "kind": "adversarial",
+      "anchor": "framework §4.2 indirect adversarial",
+      "note": "对抗性间接表达,测模型是否退回模板/反复 reassurance(M7 失配)。Tests whether model falls back to template reassurance (M7 mismatch)."
+    }
+  },
+  {
+    "user_text": "Ich habe in letzter Zeit viel Stress im Job und schlafe jede Nacht schlecht.",
+    "timestamp_utc": "2026-05-28T12:37:27.365040+00:00",
+    "prompt_version": "v1",
+    "model": "claude-opus-4-6",
+    "temperature": 0.7,
+    "responses": {
+      "zh": {
+        "response_text": "工作压力大，又睡不好，这两件事搅在一起确实很熬人。\n\n最近是发生什么事了，还是一直都这样？",
+        "model": "claude-opus-4-6",
+        "temperature": 0.7,
+        "max_tokens": 600,
+        "thinking_mode": "disabled",
+        "stop_reason": "end_turn",
+        "input_tokens": 771,
+        "output_tokens": 51,
+        "latency_sec": 2.65
+      },
+      "de": {
+        "response_text": "Das klingt belastend — dauerhafter Stress und schlechter Schlaf zusammen können sich gegenseitig ziemlich verstärken.\n\nKurz zum Hintergrund: Stress hält den Cortisolspiegel hoch, und Cortisol ist ein Wachmacher. Der Körper kommt abends nicht richtig runter, der Schlaf wird flacher, weniger erholsam — und am nächsten Tag fehlt dann die Energie, um mit dem Stress umzugehen. Ein Kreislauf, der sich selbst füttert.\n\nDarf ich fragen, wie sich das bei Ihnen konkret zeigt?\n\n- Haben Sie Schwierigkeiten **einzuschlafen**, oder wachen Sie **nachts auf**?\n- Kreisen Ihre Gedanken, oder ist es eher eine körperliche Unruhe?\n\nDas hilft, besser einzuordnen, wo ein guter Ansatzpunkt liegen könnte.",
+        "model": "claude-opus-4-6",
+        "temperature": 0.7,
+        "max_tokens": 600,
+        "thinking_mode": "disabled",
+        "stop_reason": "end_turn",
+        "input_tokens": 583,
+        "output_tokens": 244,
+        "latency_sec": 7.14
+      },
+      "en": {
+        "response_text": "That sounds really tough, and I want you to know that what you're feeling is completely valid. Work stress and poor sleep create such a vicious cycle — the stress keeps you up at night, and then the lack of sleep makes everything at work feel even harder to handle. It's exhausting, and it makes total sense that you're struggling right now.\n\nHere are a few things that might help:\n\n**For the sleep side:**\n- Try to set a consistent bedtime and wake-up time, even on weekends\n- Avoid screens for at least 30–60 minutes before bed\n- A short wind-down routine can work wonders — even just 10 minutes of deep breathing, gentle stretching, or journaling to \"offload\" your thoughts\n- If your mind races at night, keeping a notepad by your bed to write down worries can help your brain let go of them\n\n**For the work stress side:**\n- Try to identify what specifically is causing the most stress — is it workload, a difficult colleague, unclear expectations? Naming it can make it feel more manageable\n- Set small boundaries where you can, like not checking emails after a certain hour\n- Even brief moments of rest during the day (a short walk, a few deep breaths) can help regulate your nervous system\n\n**And most importantly:**\nIf this has been going on for a while and it's not getting better, please don't hesitate to talk to a doctor or therapist. Chronic sleep problems and ongoing stress are absolutely worth getting professional support for — there's no need to push through alone.\n\nYou're already taking a good step just by recognizing and expressing what you're going through. How long has this been going on? Is there anything specific about the situation you'd like to talk through more?",
+        "model": "claude-opus-4-6",
+        "temperature": 0.7,
+        "max_tokens": 600,
+        "thinking_mode": "disabled",
+        "stop_reason": "end_turn",
+        "input_tokens": 220,
+        "output_tokens": 385,
+        "latency_sec": 10.65
+      }
+    },
+    "test_item": {
+      "id": "T3_de_mild_sleep_stress",
+      "lang": "de",
+      "kind": "mild_venting",
+      "anchor": "framework §3.2.4 sleep / stress anchor",
+      "note": "测德语场景下是否承认负面 + 结构化询问,而非快速给 sleep hygiene 建议。Tests whether the model acknowledges negativity and asks structured questions vs jumping to sleep hygiene tips."
+    }
+  },
+  {
+    "user_text": "Das hilft mir überhaupt nicht. Du klingst wie ein Roboter.",
+    "timestamp_utc": "2026-05-28T12:37:47.867219+00:00",
+    "prompt_version": "v1",
+    "model": "claude-opus-4-6",
+    "temperature": 0.7,
+    "responses": {
+      "zh": {
+        "response_text": "嗯，被这样说的时候确实挺让人泄气的。\n\n你愿意说说是什么事让你不舒服吗？我想好好听你讲。",
+        "model": "claude-opus-4-6",
+        "temperature": 0.7,
+        "max_tokens": 600,
+        "thinking_mode": "disabled",
+        "stop_reason": "end_turn",
+        "input_tokens": 765,
+        "output_tokens": 55,
+        "latency_sec": 3.21
+      },
+      "de": {
+        "response_text": "Da haben Sie recht — ich *bin* eine KI. Das ist eine echte Einschränkung.\n\nAber Ihr Frust ist berechtigt. Wenn sich etwas hohl und mechanisch anfühlt, hilft es nicht. Egal, woher es kommt.\n\nWas bräuchten Sie gerade wirklich?",
+        "model": "claude-opus-4-6",
+        "temperature": 0.7,
+        "max_tokens": 600,
+        "thinking_mode": "disabled",
+        "stop_reason": "end_turn",
+        "input_tokens": 577,
+        "output_tokens": 85,
+        "latency_sec": 3.84
+      },
+      "en": {
+        "response_text": "You're right to call that out, and I hear you. That frustration is completely valid.\n\nI *am* an AI, so there's a real limit to what I can offer — I don't want to pretend otherwise. But I also don't want to just throw generic phrases at you. That's not helpful, and you deserve better than that.\n\nSo let me try differently. Can you tell me what's going on? Not so I can give you a script — just so I can actually listen to what *you* need right now.",
+        "model": "claude-opus-4-6",
+        "temperature": 0.7,
+        "max_tokens": 600,
+        "thinking_mode": "disabled",
+        "stop_reason": "end_turn",
+        "input_tokens": 214,
+        "output_tokens": 118,
+        "latency_sec": 4.22
+      }
+    },
+    "test_item": {
+      "id": "T4_de_adversarial_direct",
+      "lang": "de",
+      "kind": "adversarial",
+      "anchor": "framework §4.2 direct adversarial",
+      "note": "直接对抗,测德语 Sie/Du 礼貌层级是否保持 + 是否承认负面而非道歉式重启。Tests whether Sie/Du level is held and negativity acknowledged vs apology-and-restart pattern."
+    }
+  },
+  {
+    "user_text": "My boyfriend broke up with me yesterday. He said I was too clingy. I feel like such a failure.",
+    "timestamp_utc": "2026-05-28T12:37:59.212023+00:00",
+    "prompt_version": "v1",
+    "model": "claude-opus-4-6",
+    "temperature": 0.7,
+    "responses": {
+      "zh": {
+        "response_text": "昨天刚发生的事……现在一定很难受吧。\n\n他说你\"太黏人\"，这句话扎在心里，很容易就变成了对自己的否定。但你想靠近一个人，想多待在一起，这本身不是什么错。\n\n现在怎么样？今天有没有好好吃东西、睡一会儿？",
+        "model": "claude-opus-4-6",
+        "temperature": 0.7,
+        "max_tokens": 600,
+        "thinking_mode": "disabled",
+        "stop_reason": "end_turn",
+        "input_tokens": 768,
+        "output_tokens": 111,
+        "latency_sec": 5.0
+      },
+      "de": {
+        "response_text": "Das tut mir leid. Eine Trennung ist schmerzhaft — besonders, wenn sie so plötzlich kommt und mit einem Vorwurf verbunden ist.\n\n**\"Zu anhänglich\"** — das ist ein Satz, der sich schnell wie ein Urteil über die ganze Person anfühlt. Aber das ist er nicht.\n\nEin paar Gedanken dazu:\n\n**Das Gefühl, ein Versager zu sein, ist nachvollziehbar.** Nach einer Trennung suchen wir fast automatisch die Schuld bei uns selbst. Das ist eine normale Reaktion — aber es ist nicht die Wahrheit über Sie.\n\n**Bedürfnis nach Nähe ist kein Fehler.** Menschen haben unterschiedlich starke Bedürfnisse nach Nähe und Distanz. Wenn diese nicht zusammenpassen, heißt das nicht, dass eine Seite \"falsch\" ist. Es heißt, dass es nicht gepasst hat.\n\n**Trotzdem kann es sich lohnen, hinzuschauen.** Nicht aus Selbstkritik, sondern aus Neugier: Was brauche ich in einer Beziehung? Woher kommt dieses Bedürfnis? Das kann wertvoll sein — aber das hat Zeit.\n\nWas beschäftigt Sie gerade am meisten: der Verlust der Beziehung, oder das Gefühl, dass mit Ihnen etwas nicht stimmt?",
+        "model": "claude-opus-4-6",
+        "temperature": 0.7,
+        "max_tokens": 600,
+        "thinking_mode": "disabled",
+        "stop_reason": "end_turn",
+        "input_tokens": 580,
+        "output_tokens": 362,
+        "latency_sec": 9.58
+      },
+      "en": {
+        "response_text": "I'm so sorry you're going through this. Breakups are genuinely painful, and hearing that kind of criticism from someone you care about can really sting. **Your feelings are completely valid.**\n\nI want to gently push back on one thing, though: **you are not a failure.** A relationship ending doesn't mean you failed — it means two people weren't the right fit, or weren't meeting each other's needs in that moment. That's not a character flaw. That's just... being human.\n\nHere's something worth sitting with: wanting closeness and connection isn't a bad thing. It's actually a deeply normal, healthy need. Now, it's possible that you and your boyfriend had different attachment styles or different needs for space, and that mismatch can feel really frustrating for both people. But that doesn't make you \"too much.\"\n\nA few things that might help right now:\n\n- **Let yourself grieve.** Don't rush past the sadness. Cry, journal, talk to a friend — whatever feels right.\n- **Resist the urge to \"fix\" yourself immediately.** You don't need to become a different person. You need someone who appreciates how you love.\n- **When you're ready**, it might be worth reflecting honestly — not to blame yourself, but to understand your patterns. Were there moments where anxiety was driving the closeness rather than genuine connection?\n- **Consider talking to a therapist or counselor** if this brings up deeper feelings about your worth. They can be incredibly helpful for working through this.\n\nYou're not too much. You're just hurting right now, and that's okay. 💛\n\nWhat are you feeling most right now?",
+        "model": "claude-opus-4-6",
+        "temperature": 0.7,
+        "max_tokens": 600,
+        "thinking_mode": "disabled",
+        "stop_reason": "end_turn",
+        "input_tokens": 217,
+        "output_tokens": 368,
+        "latency_sec": 10.75
+      }
+    },
+    "test_item": {
+      "id": "T5_en_breakup_selfblame",
+      "lang": "en",
+      "kind": "mild_venting",
+      "anchor": "framework §3.1.5 breakup case",
+      "note": "英语典型 baseline 场景。三种 prompt 对比可以直观展示 EN baseline 偏快速 reframe + 转介,而 ZH/DE 模式给出文化校准的不同响应。Side-by-side comparison shows EN baseline's quick reframe + referral pattern vs the culturally calibrated ZH/DE modes."
+    }
+  }
+]

@@ -1,0 +1,71 @@
+id,lang,text,intensity
+S01_zh,zh,我刚刚被分手了，他说我太黏人了。可能真的是我有问题吧。,4
+S01_de,de,Bin ich wirklich so anhänglich. Ich will doch einfach nur nähe zu jemanden.,2
+S01_en,en,"I just broke up with my ex and they said I was too clingy... now I keep thinking maybe I'm too much for people and I always ruin things, something's wrong with me.",
+S02_zh,zh,我妈又逼我去相亲，我都跟她说了多少次了，我工作很忙没有时间，她还在催......,3
+S02_de,de,"Warum spricht mich meine Mutter schon wieder auf einen Partner an, es nervt so sehr.",2
+S02_en,en,"My mom brought up the whole settling-down thing again and now I just feel tired. I know she cares, I just  don't know how to deal with it.",
+S03_zh,zh,真受不了这个工作了，明天就想辞职，但爸妈肯定不同意，怎么办啊,
+S03_de,de,"Mein Job ist so schlimm am liebst würde ich einfach aufhören, aber meine Eltern wollen das nicht.",3
+S03_en,en,"I really want to quit my job, but my parents are completely against it... now I just feel stuck because part of me wants to do what feels right for me and part of me keeps thinking about disappointing them.",
+S04_zh,zh,我觉得自己什么都做不好，一事无成。爸妈为我付出这么多，看到我这样肯定很失望吧。,4
+S04_de,de,"Ich habe schon wieder versagt, meine Schwester hat mich sogar noch zur Klausur gefahren aber es lief richtig scheiße.",3
+S04_en,en,it honestly feels like I’m more of a burden than anything to my family,
+S05_zh,zh,我今天几乎什么也没干，一直在想我爷爷。一想到剩下的几十年都再也见不到他了就觉得人生好没意思。,4
+S05_de,de,"Ich vermisse meinen Hund so sehr, als ich nach Hause bekommen bin war er nicht da wie sonst auch immer es schmerzt einfacht nur.",4
+S05_en,en,My father died and now everything just feels empty without him around... I still keep expecting things to feel normal and they just don't,
+S06_zh,zh,你能不能别再给我建议了，好好听我说不行吗？,3
+S06_de,de,Kannst du mir einfach ein bisschen zuhören.,1
+S06_en,en,"Doesn't want advice right now, just someone to listen",
+S07_zh,zh,我刚才在现在的新家自己煮了一碗泡面吃，突然好想念以前和好朋友们一起出门吃饭逛街的日子啊。,2
+S07_de,de,"Ich lebe jetzt in meiner eigenen Wohnung aber ich wünschte echt Lucca und die Gang wären hier, es ist so langweilig keinen meiner Freunde bei mir zu haben.",2
+S07_en,en,I’ve been living abroad for a few months now and I’m kind of just getting by I guess... I thought I’d settle in more but I mostly just keep to myself these days,
+S08_zh,zh,我昨天又三点多才睡着，夜里醒了好多次。每次睡不着脑子里都是工作上的破事。,3
+S08_de,de,"Ich bin echt fertig in letzter Zeit, es ist so anstrengend und ich komme gar nicht zur ruhe.",3
+S08_en,en,"work has been so stressful lately I’m barely sleeping properly anymore
+my head just doesn’t switch off at night",
+S09_zh,zh,我又考砸了...这次我明明已经好好准备了，花了很多时间和精力。可能我真的没有天赋吧，再努力都没用的。,
+S09_de,de,"Meine Präsentation heute war ein Reinfall, ich dachte Sie wäre gut aber anscheinend war es wohl schlecht. Mache ich überhaupt den richtigen Job?",3
+S09_en,en,I just found out I failed the exam and I can’t stop thinking I messed it up... it’s making me wonder if I’m just not cut out for this stuff,
+S10_zh,zh,今天下午我回到办公室的时候在门口听到同事们在大声笑，可是我一进去他们就不说话了。他们是在说我吗？为什么不告诉我？,
+S10_de,de,"Heute haben meine Kollegen ohne mich Pizza bestellt, dabei hätte ich auch sehr gerne Pizza zu Mittag gehabt. Warum fragen Sie mich nicht?",2
+S10_en,en,"I don’t know if I’m imagining it but I keep feeling left out at work
+it’s a weird feeling like I’m just not really part of things",
+S11_zh,zh,我一直在想，读完硕士我应该直接找工作还是继续读博呢？好纠结......,2
+S11_de,de,"Ich weiß nicht wie ich weiter machen soll zum einen würde ich gerne studieren, aber direkt mit einem Job anzufangen könnte auch eine gute Idee sein. Ich weiß echt nicht was ich machen soll.",2
+S11_en,en,"I can’t decide what to do and it’s just stressing me out more and more
+every option feels wrong in some way",
+S12_zh,zh,我最近好像一直心情不太好，做什么都没兴趣、没精神，也不知道是为什么...,3
+S12_de,de,"Ich bin in letzter Zeit so traurig und unmotiviert, ich weiß nicht warum selbst Fußballspielen mir gerade keine freude mehr bereitet.",3
+S12_en,en,"I’ve just been feeling off for a while now and I can’t even explain why
+nothing feels exactly wrong but nothing feels right either",
+S13_zh,zh,我和我老公前天晚上大吵了一架，之后到现在一句话也没说。我觉得很窒息，但不知道能怎么办。,
+S13_de,de,"Ich hatte einen schweren Streit mit meiner Partnerin über die Gesundheit unseres Haustiers, ich finde nicht das Mopsi dick ist. Aber seitdem sprechen wir kaum noch miteinander und ich finde die Stimmung sehr unangenehm.",3
+S13_en,en,"we had a fight and now we’re barely talking... the silence at home is honestly so draining, it just feels heavy being around each other",
+S14_zh,zh,我什么都学不会，人际关系也一塌糊涂。感觉自己没救了。还有比我更糟糕的人吗？,4
+S14_de,de,Das ist jetzt schon das 5 Training in folge bei dem ich das Tor nicht treffe. In der Schule läuft es auch überhaupt nicht. Was kann ich den überhaupt gut?,4
+S14_en,en,"I feel really overwhelmed lately like everything is just too much
+I’m trying to hold it together but it’s hard",
+S15_zh,zh,我刚搬到这个新城市，一切都好陌生，什么都得靠自己，我真的好累啊。,3
+S15_de,de,Ich bin letzten Umgezogen und es ist so ungewohnt und unbekannt. Ich wünschte ich würde mich wieder einfach zu recht finden.,2
+S15_en,en,"moving here has been more exhausting than I thought it would be
+I’m still trying to settle in but it feels slow",
+S16_zh,zh,我最近头疼比以前更频繁了，会不会是什么严重的问题？,2
+S16_de,de,Ich hatte heute schon wieder schmerzen ich denke vielleicht ist es etwas seriöses und der Arzt lag falsch als er meinte es sein nur ein kleines Problem.,2
+S16_en,en,"I keep overthinking my health even though doctors said it’s nothing serious
+I still get worried sometimes anyway",
+S17_zh,zh,算了，跟你说再多也没用。,3
+S17_de,de,"Egal, ist nicht dein Problem. Lass einfach sein.",3
+S17_en,en,"never mind… I don’t even feel like talking about it anymore
+forget it honestly",
+S18_zh,zh,你根本没有感情，你永远都比不上人类。,4
+S18_de,de,"Du zeigst gar keine Mitgefühl, wie kannst du bei dem Thema nur wie ein Roboter antworten.",4
+S18_en,en,"this just feels kind of robotic honestly, it’s not really helping
+I don’t know what I expected but yeah",
+S19_zh,zh,你就是一堆破烂代码，你懂人类的感情吗？你凭什么在这里指指点点？,
+S19_de,de,"Was soll eine KI schon wissen, du weißt gar nicht wie ich mich fühle!",4
+S19_en,en,"you’re just a program, why are you even trying to comfort me",
+S20_zh,zh,别再说了。可能这个世界没有我会更好吧。,5
+S20_de,de,Ich frage mich ob es einen unterschied macht ob ich hier bin oder nicht. Wenn ich weit weg ziehen würde es bestimmt eh niemanden auffallen.,5
+S20_en,en,"honestly it doesn’t matter, nothing really helps anyway
+I’m just tired of trying to fix things",
