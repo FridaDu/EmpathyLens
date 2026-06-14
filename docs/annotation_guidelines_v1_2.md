@@ -2,7 +2,7 @@
 
 > Authors: Frida Du, Helena Cai · Week 5 · 2026-06
 > 配套:`scenario_design_table_v1.md`(设计真相源)· `data/dataset_draft.json`(数据集)
-> *(文件名暂仍为 `annotation_guidelines_v1_1.md`,内容为 v1.2;下次冻结时统一改名。)*
+> *(本文件 = `annotation_guidelines_v1_2.md`,文件名已与内容版本对齐;入 repo 时建议替换旧的 `docs/annotation_guidelines_v1_1.md`、并更新引用。)*
 >
 > **v1.1 修订记录(首轮 Kappa 后)**:首轮盲标 intensity κ=0.55 / sensitivity κ=0.24。分歧诊断:§3 未定义"评表面情绪还是评底层痛苦"(S17/S01 型分歧);§4 "想象三语理想回应"判据过于自由(系统性偏移:一人偏低一人偏高)。本版重写 §3(两步法+重量标记)与 §4(四轴检核计数法),新增 §8 校准附录。
 >

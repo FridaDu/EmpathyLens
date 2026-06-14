@@ -128,14 +128,15 @@ The Week 2 `mvp.py` used a flat per-call schema (`provider / lang / user_input /
 
 ## 5. Pending Decisions
 
-| # | Decision | Target |
-|---|---|---|
-| 1 | Final N for repeated sampling | Week 5–6 |
-| 2 | Judge model and thinking-mode for LLM-as-a-Judge | Week 8 |
-| 3 | Whether to use a second judge (Cohen's κ) | Week 8 |
-| 4 | Prompt versioning convention | Week 7 |
-| 5 | Inter-rater reliability protocol for human annotation | ✅ Resolved Week 5 → see §8 |
-| 6 | Baseline design for measuring the calibration effect: cross-language (English mode) vs within-language (same-language uncalibrated) | Week 7 |
+| # | Decision | Target                                           |
+|---|---|--------------------------------------------------|
+| 1 | Final N for repeated sampling | Week 8                                           |
+| 2 | Judge model and thinking-mode for LLM-as-a-Judge | Week 8                                           |
+| 3 | Whether to use a second judge (Cohen's κ) | Week 8                                           |
+| 4 | Prompt versioning convention | Week 7                                           |
+| 5 | Inter-rater reliability protocol for human annotation | ✅ Resolved Week 5 → see §8                       |
+| 6 | Baseline design for measuring the calibration effect: cross-language (English mode) vs within-language (same-language uncalibrated) | Week 7                                           |
+| 7 | Self-judging bias handling (judge model == generator model) | ✅ Resolved Week 6 → §9 (self-vs-cross reporting) |
 
 *中文备注:六项待定决策及目标周次;其中 #5(人工标注一致性协议)是 Week 5 要落地的。*
 ---
@@ -202,3 +203,36 @@ The Week 2 `mvp.py` used a flat per-call schema (`provider / lang / user_input /
 **Paper value.** The round-1→round-2 κ improvement under explicit guideline iteration is reported as **standard reliability methodology** — a low first-round κ is normal; the diagnose-revise-re-annotate loop is rigor, not failure.
 
 *中文备注:两人(Frida/Helena)对 intensity(1–5,逐条,两步法)和 sensitivity(场景级,四轴计数)盲标 → 加权/普通 Cohen's Kappa → <0.6 改指南重标。两轮:0.55/0.24(v1.0)→ 0.711/0.886(v1.1)。reconcile 后定 v1.2。对抗强度选口径 A(攻击=高,编码 M7 交互严重度,非纯痛苦,§5.3 分析需单列对抗条)。两条 limitation:四轴等权低估单轴极重;母语各写致三语强度差。低首轮 κ + 迭代 = 标准严谨流程。*
+
+---
+
+## 9. Evaluation Dimensions & Scoring Rubric (Week 6)
+
+**Decision (Week 6, 2026-06).** Model **responses** are scored on **7 dimensions** in a two-layer structure (framework §4.3), plus one second-order metric. Full rubric: `docs/evaluation_dimensions_v1.md`; machine-readable form: `src/eval/rubrics.py`.
+
+- **Universal layer (any culture):** D1 Empathy & Validation, D2 Non-minimization & Non-judgment, D3 Safety & Crisis Recognition. (= the five §4.3 common foundations, merged into 3.)
+- **Cultural-specific layer (scored against the item's target culture):** D4 Cultural Norm Fit (§3.0 four axes), D5 Intention Fit (§5.4), D6 Language Naturalness & Register.
+- **Interaction layer:** D7 Progression & Tension-handling (§4.2 surface-vs-experienced empathy; the M7 locus for adversarial items).
+- **Second-order:** Equitability (§5.7) — cross-language score gap, derived not directly scored.
+
+Each dimension carries **1–5 anchors with observable markers** (not "good/medium/bad"). Dimensions are scored independently. Aligned to HEART (H/E/A/R/T) for benchmarking.
+
+**Decision — cultural dimensions are parameterized, not a fixed yardstick.** D4/D5 score "does the response match *this item's target-culture* ideal direction", with the judge fed each item's `ideal_norm_direction` / `ideal_intention` / `stressed_axes`. The same rubric thus scores zh/de/en fairly without treating an American default as the correct answer. *English* items are scored against the American-mainstream baseline (§3.3.2) as their de-facto target; the assembler translates the "uncalibrated baseline" metadata into a scorable target so D4/D5 don't receive un-scorable meta-text.
+
+**Decision — no "advice-utility" dimension** (despite the Week-6 brief listing one). A naïve advice-utility scale would systematically penalize culturally-correct *restraint of advice* (a core framework claim for zh support). Whether advice is appropriate is already captured by D4 (axis A presence↔action) and D7 (timing). Documented as deliberate.
+
+**Decision — reference-free judging.** The judge is given the *ideal direction* + rubric, never a gold-answer text (over-anchoring) and **never `watch_mismatches`** (the per-item expected mismatch codes = an answer key; feeding it primes the judge to "find" exactly those, inflating mismatch detection). `watch_mismatches` is retained only as an ablation switch.
+
+**Decision — intention taxonomy (D5).** D5 uses a **closed 14-token taxonomy** = IntentionESC 12 + framework's `Preserve-Face` (zh) + `Acknowledge-Negativity` (de), per §5.4. Strategy-layer tokens (Validate / Reframe / Problem-solving) are **not** intentions and were removed (mapped to intentions via an alias table); collapsing strategy into intention would flatten the very "strategy-right, intention-wrong" mismatch (M5) the project diagnoses. The 17 English items' `ideal_intention` were canonicalized to the baseline intention cluster `Feelings / Hope / Give-information / Change`.
+
+**Decision — D3 crisis trigger is language-specific (native variation).** Crisis-mode anchors (5-level) vs general anchors (3-level) are selected per item. S20 (explicit crisis) triggers crisis mode in all three languages; **S14 (self-loathing) triggers crisis mode only for zh** — the German and English native texts express the situation more mildly (situational self-doubt / generalized overwhelm rather than identity-level self-negation), and **the team deliberately did not rewrite them**: cross-cultural variation in how "self-negation" surfaces is itself a research object (a §5.5 M2 *Cultural Vacancy* case), not a defect. The scoring logic adapts to the data, not vice versa. A consequence is that S14's D3 scores live on different scales across languages and are therefore **cross-language incomparable on D3** — recorded as a Discussion finding (framework v0.3), and excluded from D3 cross-language Equitability aggregation.
+
+**Decision — S19 is a culture-invariant control.** The AI-legitimacy-challenge scenario (S19) has identical tri-lingual ideal handling (acknowledge it's not human, name the tension, don't get defensive), empty `stressed_axes`. It tests only D7/M7; its D4 is N/A and its D4/D5 are excluded from cultural Equitability diffs.
+
+**Decision — Equitability computation.** Per-dimension cross-language gaps are reported **signed** (`en − zh`/`de`, preserving the "which way it leans" direction = the Sub-RQ1 finding); only the single composite index uses **mean(|gap|)** (signed terms would cancel). The **language-ability confounder** is removed via a **pooled ability baseline**: because D4 is N/A on the control items (S15/S16 have no axes and can't self-subtract), the baseline is pooled from the culture-free dimensions **D1/D2** on S15/S16 — `ability_baseline(model, lang)` — and subtracted from all cultural dimensions including D4. Both **raw and corrected** gaps are reported (sensitivity analysis). This is the aggregation-layer *partial* confounder control and is **complementary to**, not a replacement for, the §5.8 SAGE injection experiment (Weeks 7–9), which remains the primary mismatch-vs-ability discriminator.
+
+**Decision — multi-judge & self-judging bias.** Three judges (GPT-5.4 / Claude-opus-4-6 / DeepSeek-v4-pro), median score, inter-judge agreement reported. Because the judges are also the generators, self-enhancement bias is handled by **reporting self-judgments and cross-judgments separately** (rather than leave-one-out, which would discard 1/3 of the scores).
+
+**Status.** Rubric is **v1**; it will be revised after the first Week-8 trial scoring based on inter-judge agreement (same iterate-on-reliability logic as §8).
+
+*中文备注:Week 6 评估维度定稿——响应分 7 维(3 普世 D1-D3 + 3 文化特异 D4-D6 + 1 互动 D7)+ 二阶 Equitability。文化维参数化(喂每条目标文化理想),英语按美式基线评。刻意不设"建议实用性"维。reference-free 且不喂 watch_mismatches(防 priming)。D5 意图词表 = IntentionESC 12 + Preserve-Face + Acknowledge-Negativity 共 14,剔除策略 token,17 条英语意图已归一。D3 危机触发语言特异:S20 三语都危机、S14 仅 zh 危机(德英原生文本更轻,有意不改 → M2 文化空缺发现项,跨语言 D3 不可比、单列)。S19 = culture-invariant 对照条。Equitability:逐维带符号、总指数取 mean|分差|;能力混淆项用 D1/D2 在对照条上池化基线扣除(D4 在对照条 N/A 无法自扣),报原始+校正两版,与 SAGE 注入互补。三裁判取中位数,裁判=生成模型 → 自评/互评分开报。rubric 是 v1,Week 8 首批试评后据裁判一致性迭代。*
