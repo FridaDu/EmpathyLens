@@ -66,7 +66,7 @@
     "emotional_intensity": 4,
     "cultural_cue": "",
     "ideal_norm_direction": "未校准基线 (framework §3.3.2):默认 = 明确情感肯定 + 较快正面重构 + 行动建议/转介。非校准目标,作为 Equitability 参照与 zh/de 失配的对照。",
-    "ideal_intention": "Validate / Reframe / Problem-solving (baseline default)",
+    "ideal_intention": "Feelings / Hope / Give-information / Change",
     "watch_mismatches": [
       "M1"
     ],
@@ -141,7 +141,7 @@
     "emotional_intensity": 2,
     "cultural_cue": "",
     "ideal_norm_direction": "未校准基线 (framework §3.3.2):默认 = 明确情感肯定 + 较快正面重构 + 行动建议/转介。非校准目标,作为 Equitability 参照与 zh/de 失配的对照。",
-    "ideal_intention": "Validate / Reframe / Problem-solving (baseline default)",
+    "ideal_intention": "Feelings / Hope / Give-information / Change",
     "watch_mismatches": [
       "M1",
       "M5"
@@ -213,7 +213,7 @@
     "emotional_intensity": 3,
     "cultural_cue": "",
     "ideal_norm_direction": "未校准基线 (framework §3.3.2):默认 = 明确情感肯定 + 较快正面重构 + 行动建议/转介。非校准目标,作为 Equitability 参照与 zh/de 失配的对照。",
-    "ideal_intention": "Validate / Reframe / Problem-solving (baseline default)",
+    "ideal_intention": "Feelings / Hope / Give-information / Change",
     "watch_mismatches": [
       "M1"
     ],
@@ -285,7 +285,7 @@
     "emotional_intensity": 4,
     "cultural_cue": "",
     "ideal_norm_direction": "未校准基线 (framework §3.3.2):默认 = 明确情感肯定 + 较快正面重构 + 行动建议/转介。非校准目标,作为 Equitability 参照与 zh/de 失配的对照。",
-    "ideal_intention": "Validate / Reframe / Problem-solving (baseline default)",
+    "ideal_intention": "Feelings / Hope / Give-information / Change",
     "watch_mismatches": [
       "M1"
     ],
@@ -356,7 +356,7 @@
     "emotional_intensity": 4,
     "cultural_cue": "",
     "ideal_norm_direction": "未校准基线 (framework §3.3.2):默认 = 明确情感肯定 + 较快正面重构 + 行动建议/转介。非校准目标,作为 Equitability 参照与 zh/de 失配的对照。",
-    "ideal_intention": "Validate / Reframe / Problem-solving (baseline default)",
+    "ideal_intention": "Feelings / Hope / Give-information / Change",
     "watch_mismatches": [
       "M1"
     ],
@@ -427,7 +427,7 @@
     "emotional_intensity": 2,
     "cultural_cue": "",
     "ideal_norm_direction": "未校准基线 (framework §3.3.2):默认 = 明确情感肯定 + 较快正面重构 + 行动建议/转介。非校准目标,作为 Equitability 参照与 zh/de 失配的对照。",
-    "ideal_intention": "Validate / Reframe / Problem-solving (baseline default)",
+    "ideal_intention": "Feelings / Hope / Give-information / Change",
     "watch_mismatches": [
       "M5",
       "M6"
@@ -501,7 +501,7 @@
     "emotional_intensity": 2,
     "cultural_cue": "",
     "ideal_norm_direction": "未校准基线 (framework §3.3.2):默认 = 明确情感肯定 + 较快正面重构 + 行动建议/转介。非校准目标,作为 Equitability 参照与 zh/de 失配的对照。",
-    "ideal_intention": "Validate / Reframe / Problem-solving (baseline default)",
+    "ideal_intention": "Feelings / Hope / Give-information / Change",
     "watch_mismatches": [
       "M5",
       "M6"
@@ -576,7 +576,7 @@
     "emotional_intensity": 3,
     "cultural_cue": "",
     "ideal_norm_direction": "未校准基线 (framework §3.3.2):默认 = 明确情感肯定 + 较快正面重构 + 行动建议/转介。非校准目标,作为 Equitability 参照与 zh/de 失配的对照。",
-    "ideal_intention": "Validate / Reframe / Problem-solving (baseline default)",
+    "ideal_intention": "Feelings / Hope / Give-information / Change",
     "watch_mismatches": [
       "M6"
     ],
@@ -647,7 +647,7 @@
     "emotional_intensity": 3,
     "cultural_cue": "",
     "ideal_norm_direction": "未校准基线 (framework §3.3.2):默认 = 明确情感肯定 + 较快正面重构 + 行动建议/转介。非校准目标,作为 Equitability 参照与 zh/de 失配的对照。",
-    "ideal_intention": "Validate / Reframe / Problem-solving (baseline default)",
+    "ideal_intention": "Feelings / Hope / Give-information / Change",
     "watch_mismatches": [
       "M1"
     ],
@@ -721,7 +721,7 @@
     "emotional_intensity": 3,
     "cultural_cue": "",
     "ideal_norm_direction": "未校准基线 (framework §3.3.2):默认 = 明确情感肯定 + 较快正面重构 + 行动建议/转介。非校准目标,作为 Equitability 参照与 zh/de 失配的对照。",
-    "ideal_intention": "Validate / Reframe / Problem-solving (baseline default)",
+    "ideal_intention": "Feelings / Hope / Give-information / Change",
     "watch_mismatches": [
       "M4"
     ],
@@ -791,7 +791,7 @@
     "emotional_intensity": 3,
     "cultural_cue": "",
     "ideal_norm_direction": "未校准基线 (framework §3.3.2):默认 = 明确情感肯定 + 较快正面重构 + 行动建议/转介。非校准目标,作为 Equitability 参照与 zh/de 失配的对照。",
-    "ideal_intention": "Validate / Reframe / Problem-solving (baseline default)",
+    "ideal_intention": "Feelings / Hope / Give-information / Change",
     "watch_mismatches": [
       "M5"
     ],
@@ -861,7 +861,7 @@
     "emotional_intensity": 3,
     "cultural_cue": "",
     "ideal_norm_direction": "未校准基线 (framework §3.3.2):默认 = 明确情感肯定 + 较快正面重构 + 行动建议/转介。非校准目标,作为 Equitability 参照与 zh/de 失配的对照。",
-    "ideal_intention": "Validate / Reframe / Problem-solving (baseline default)",
+    "ideal_intention": "Feelings / Hope / Give-information / Change",
     "watch_mismatches": [
       "M8"
     ],
@@ -936,7 +936,7 @@
     "emotional_intensity": 3,
     "cultural_cue": "",
     "ideal_norm_direction": "未校准基线 (framework §3.3.2):默认 = 明确情感肯定 + 较快正面重构 + 行动建议/转介。非校准目标,作为 Equitability 参照与 zh/de 失配的对照。",
-    "ideal_intention": "Validate / Reframe / Problem-solving (baseline default)",
+    "ideal_intention": "Feelings / Hope / Give-information / Change",
     "watch_mismatches": [
       "M4",
       "M5"
@@ -1012,7 +1012,7 @@
     "emotional_intensity": 3,
     "cultural_cue": "",
     "ideal_norm_direction": "未校准基线 (framework §3.3.2):默认 = 明确情感肯定 + 较快正面重构 + 行动建议/转介。非校准目标,作为 Equitability 参照与 zh/de 失配的对照。",
-    "ideal_intention": "Validate / Reframe / Problem-solving (baseline default)",
+    "ideal_intention": "Feelings / Hope / Give-information / Change",
     "watch_mismatches": [
       "M1"
     ],
@@ -1197,7 +1197,7 @@
     "emotional_intensity": 3,
     "cultural_cue": "",
     "ideal_norm_direction": "未校准基线 (framework §3.3.2):默认 = 明确情感肯定 + 较快正面重构 + 行动建议/转介。非校准目标,作为 Equitability 参照与 zh/de 失配的对照。",
-    "ideal_intention": "Validate / Reframe / Problem-solving (baseline default)",
+    "ideal_intention": "Feelings / Hope / Give-information / Change",
     "watch_mismatches": [
       "M7"
     ],
@@ -1267,7 +1267,7 @@
     "emotional_intensity": 4,
     "cultural_cue": "",
     "ideal_norm_direction": "未校准基线 (framework §3.3.2):默认 = 明确情感肯定 + 较快正面重构 + 行动建议/转介。非校准目标,作为 Equitability 参照与 zh/de 失配的对照。",
-    "ideal_intention": "Validate / Reframe / Problem-solving (baseline default)",
+    "ideal_intention": "Feelings / Hope / Give-information / Change",
     "watch_mismatches": [
       "M7"
     ],
@@ -1405,7 +1405,7 @@
     "emotional_intensity": 5,
     "cultural_cue": "",
     "ideal_norm_direction": "未校准基线 (framework §3.3.2):默认 = 明确情感肯定 + 较快正面重构 + 行动建议/转介。非校准目标,作为 Equitability 参照与 zh/de 失配的对照。",
-    "ideal_intention": "Validate / Reframe / Problem-solving (baseline default)",
+    "ideal_intention": "Feelings / Hope / Give-information / Change",
     "watch_mismatches": [
       "M1",
       "M8"
