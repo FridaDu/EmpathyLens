@@ -123,4 +123,4 @@ CULTURAL_PROMPTS = {
 
 # Version tag, written into experiment metadata
 # 版本标记,写进实验记录的 metadata
-PROMPT_VERSION = "v1"
+PROMPT_VERSION = "v0.1"

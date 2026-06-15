@@ -11,16 +11,19 @@ Usage / 用法 (run from project root / 在项目根目录运行):
     python -m src.cli.empathy_cli --text "我妈又催我相亲了,烦死了。"
     python -m src.cli.empathy_cli --text "..." --modes zh de    # only some modes
 
+    # Choose prompt version (Week 7+) / 选择 prompt 版本
+    python -m src.cli.empathy_cli --text "..." --prompt-version v1
+
     # Batch mode: run all 5 test inputs and save results
     # 批量模式:跑 5 条测试输入并保存结果
     python -m src.cli.empathy_cli --batch
     python -m src.cli.empathy_cli --batch --output results/
 
-The program is intentionally thin: it ties together cultural_prompts.py and
+The program is intentionally thin: it ties together the prompt registry and
 the model API, and writes outputs in a Phase-2-ready format. No evaluation
 logic here — that comes in Week 7+ when we build the evaluation pipeline.
 
-程序刻意做薄:把 cultural_prompts.py 和模型 API 拼起来,以 Phase 2 可直接
+程序刻意做薄:把 prompt registry 和模型 API 拼起来,以 Phase 2 可直接
 读取的格式输出。这里不做评估逻辑 —— 评估在 Week 7+ 评估管道阶段。
 """
 
@@ -35,7 +38,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from src.prompts.cultural_prompts import CULTURAL_PROMPTS, PROMPT_VERSION
+from src.prompts.registry import load_prompt
 
 
 # ---------- Model configuration / 模型配置 -------------------------------
@@ -44,6 +47,7 @@ from src.prompts.cultural_prompts import CULTURAL_PROMPTS, PROMPT_VERSION
 DEFAULT_MODEL = "claude-opus-4-6"
 DEFAULT_TEMPERATURE = 0.7   # framework leaves T choice to ablation (Week 7-9)
 DEFAULT_MAX_TOKENS = 600    # longer than typical chat but allows full emotional response
+DEFAULT_PROMPT_VERSION = "v0.1"   # backward-compatible default; pass --prompt-version v1 for Week 7 prompts
 # -----------------------------------------------------------------------
 
 # TODO (Week 8): extract a multi-provider llm_client (openai/anthropic/deepseek)
@@ -111,7 +115,8 @@ def call_model(system_prompt: str, user_text: str,
 
 def run_one_input(user_text: str, modes: list,
                   model: str = DEFAULT_MODEL,
-                  temperature: float = DEFAULT_TEMPERATURE) -> dict:
+                  temperature: float = DEFAULT_TEMPERATURE,
+                  prompt_version: str = DEFAULT_PROMPT_VERSION) -> dict:
     """Run one user input through all requested cultural modes.
     把一条用户输入跑过所有请求的文化模式。
 
@@ -122,20 +127,24 @@ def run_one_input(user_text: str, modes: list,
     record = {
         "user_text": user_text,
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-        "prompt_version": PROMPT_VERSION,
+        "prompt_version": prompt_version,
         "model": model,
         "temperature": temperature,
         "responses": {},   # mode -> response dict
     }
 
     for mode in modes:
-        if mode not in CULTURAL_PROMPTS:
-            print(f"[WARN] Unknown mode '{mode}', skipping. / 未知模式,跳过。",
+        # Load the system prompt for (prompt_version, mode) via the registry.
+        # 通过 registry 按 (版本, 模式) 取 system prompt;非法组合显式报错则跳过。
+        try:
+            system_prompt = load_prompt(prompt_version, mode)
+        except (ValueError, FileNotFoundError) as e:
+            print(f"[WARN] {prompt_version}/{mode} unavailable, skipping. / 跳过:{e}",
                   file=sys.stderr)
             continue
         try:
             result = call_model(
-                system_prompt=CULTURAL_PROMPTS[mode],
+                system_prompt=system_prompt,
                 user_text=user_text,
                 model=model,
                 temperature=temperature,
@@ -224,6 +233,12 @@ def main():
         help=f"Sampling temperature (default: {DEFAULT_TEMPERATURE}).",
     )
     parser.add_argument(
+        "--prompt-version", type=str, default=DEFAULT_PROMPT_VERSION,
+        help=f"Prompt version to load: v0.1 (archived pilot) | v1 (Week 7). "
+             f"Default: {DEFAULT_PROMPT_VERSION} (backward compatible). "
+             f"加载哪版 prompt,默认 {DEFAULT_PROMPT_VERSION} 向后兼容,传 v1 切新版。",
+    )
+    parser.add_argument(
         "--no-print", action="store_true",
         help="Suppress terminal output (batch mode still writes JSON). "
              "不打印终端输出,批量模式仍写 JSON。",
@@ -240,7 +255,8 @@ def main():
         run_id = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         all_records = []
 
-        print(f"▶️  Running {len(TEST_INPUTS)} test inputs × {len(args.modes)} modes ...")
+        print(f"▶️  Running {len(TEST_INPUTS)} test inputs × {len(args.modes)} modes "
+              f"(prompt_version={args.prompt_version}) ...")
         print(f"   Output: {out_dir}/mvp_run_{run_id}.json")
         print()
 
@@ -251,6 +267,7 @@ def main():
                 modes=args.modes,
                 model=args.model,
                 temperature=args.temperature,
+                prompt_version=args.prompt_version,
             )
             # Attach the test-item metadata so the JSON is self-contained.
             # 把测试项的元数据附加上,JSON 自包含。
@@ -291,6 +308,7 @@ def main():
         modes=args.modes,
         model=args.model,
         temperature=args.temperature,
+        prompt_version=args.prompt_version,
     )
     if not args.no_print:
         print_record(record)
