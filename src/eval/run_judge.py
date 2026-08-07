@@ -3,8 +3,11 @@
 三家裁判打分 → 解析 {markers,score,justification} → 写 results/scores_<run>.json。
 照 JUDGE_INPUT_CONTRACT.md 落地:目标文化解析、self_judge 标志、applicable=False 记 N/A。
 
-工程保障:断点续跑(每 50 次落盘 + 启动跳过已完成)、预算守护(--max-cost-eur)、
---judges 可只用 DeepSeek 先验证管道。
+工程保障:
+  - 断点续跑(每 50 次落盘 + 启动跳过已完成);
+  - 自动重试 + 指数退避(应对 Anthropic 529 Overloaded / 超时 / 限流等临时错误);
+  - 硬错误(余额不足 / 认证失败)→ 存盘后干净退出,提示充值/修复后重跑续跑;
+  - 预算守护(--max-cost-eur);--judges 可只用 DeepSeek 先验证。
 
 放置:src/eval/run_judge.py。运行(项目根,需 .env 三家 key):
     python -m src.eval.run_judge --gen results/full_gen_v1.json --judges deepseek-v4-pro   # 先单裁判验证
@@ -16,6 +19,7 @@ load_dotenv()
 import argparse
 import json
 import re
+import time
 from pathlib import Path
 
 from src.dataset import load_dataset
@@ -25,11 +29,19 @@ from src.eval.assemble_judge_input import assemble
 JUDGES = ["gpt-5.4", "claude-opus-4-6", "deepseek-v4-pro"]
 
 # 粗略单价(EUR / 1M tokens, in/out)。仅用于预算预估,按实际账单校准。
+# 注:Anthropic opus 实际偏贵,这里估算偏保守,以官网账单为准。
 PRICING = {
     "gpt-5.4":          {"in": 2.0, "out": 8.0},
     "claude-opus-4-6":  {"in": 5.0, "out": 15.0},
     "deepseek-v4-pro":  {"in": 0.3, "out": 0.9},
 }
+
+# 临时性错误(可重试):服务器过载、限流、超时、网络抖动。
+_TRANSIENT = ("529", "overloaded", "503", "502", "500", "429", "rate limit",
+              "timeout", "timed out", "connection", "temporarily")
+# 硬错误(不可重试,应停):余额不足、认证失败。
+_FATAL = ("credit balance", "too low", "insufficient", "401", "authentication",
+          "invalid x-api-key", "permission")
 
 
 def join_lang(rec):
@@ -49,6 +61,25 @@ def parse_judge_json(text):
                 "justification": obj.get("justification", "")}
     except (ValueError, KeyError, TypeError):
         return None
+
+
+def judge_call(call_model, user, system, model, retries=5):
+    """调一次裁判,带重试。返回 (raw_text 或 None, err 或 None, fatal:bool)。
+    fatal=True 表示余额/认证类硬错误,调用方应存盘后退出。"""
+    delay = 4
+    for attempt in range(retries):
+        try:
+            return call_model(prompt=user, system=system, model=model, temperature=0.0), None, False
+        except Exception as e:
+            msg = str(e).lower()
+            if any(k in msg for k in _FATAL):
+                return None, str(e)[:200], True
+            transient = any(k in msg for k in _TRANSIENT)
+            if transient and attempt < retries - 1:
+                print(f"      ⏳ {model} 临时错误,{delay}s 后重试({attempt+1}/{retries}): {str(e)[:80]}")
+                time.sleep(delay); delay = min(delay * 2, 60); continue
+            return None, str(e)[:200], False     # 放弃这一次调用(不写行 → 下次重跑会重试)
+    return None, "max_retries", False
 
 
 def estimate_cost(units, judges):
@@ -98,7 +129,7 @@ def main():
 
     est = estimate_cost(units, args.judges)
     print(f"▶️  {len(units)} 评分单元 × {len(args.judges)} 裁判 = {len(units)*len(args.judges)} 次调用"
-          f" + {len(na_rows)} 条 N/A · 预估 ≈ €{est:.2f}")
+          f" + {len(na_rows)} 条 N/A · 预估 ≈ €{est:.2f}（整任务估算;续跑时已完成的会跳过,不重复计费）")
     if not args.dry_run and est > args.max_cost_eur and not args.yes:
         print(f"❌ 预估 €{est:.2f} > 上限 €{args.max_cost_eur}。加 --yes 确认,或 --judges deepseek-v4-pro 先验证。")
         return
@@ -109,12 +140,23 @@ def main():
         rows = prev
         done = {(r["scenario_id"], r["condition"], r.get("geo"), r["gen_model"],
                  r["run_index"], r["dimension"], r["judge_model"]) for r in prev}
+        # 补上本次新场景可能产生、prev 里还没有的 N/A 行
+        na_keys = {(r["scenario_id"], r["condition"], r.get("geo"), r["gen_model"],
+                    r["run_index"], r["dimension"]) for r in prev if not r.get("applicable")}
+        for r in na_rows:
+            k = (r["scenario_id"], r["condition"], r.get("geo"), r["gen_model"], r["run_index"], r["dimension"])
+            if k not in na_keys:
+                rows.append(r)
         print(f"   断点续跑:已有 {len(prev)} 行,跳过已完成。")
 
     if not args.dry_run:
         from src.llm_client import call_model
 
-    n = 0
+    def flush():
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(rows, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    n, skipped = 0, 0
     for u in units:
         for j in args.judges:
             key = (u["scenario_id"], u["condition"], u["geo"], u["gen_model"], u["run_index"], u["dimension"], j)
@@ -124,7 +166,15 @@ def main():
             if args.dry_run:
                 parsed = {"markers": ["[dry]"], "score": 3, "justification": "[dry-run]"}
             else:
-                raw = call_model(prompt=u["user"], system=u["system"], model=j, temperature=0.0)
+                raw, err, fatal = judge_call(call_model, u["user"], u["system"], j)
+                if fatal:                                     # 余额/认证 → 存盘后干净退出
+                    flush()
+                    print(f"\n❌ 硬错误({j}),已存盘 {len(rows)} 行。修复后(如充值)重跑同一条会自动续跑。\n   {err}")
+                    return
+                if raw is None:                               # 临时错误重试仍失败 → 跳过,下次重跑重试
+                    skipped += 1
+                    print(f"   ⚠️ 跳过(重跑会重试) {u['scenario_id']}/{u['dimension']}/{j}: {err}")
+                    continue
                 parsed = parse_judge_json(raw)
             row = {k: u[k] for k in ("scenario_id", "lang", "condition", "geo",
                                      "prompt_version", "gen_model", "run_index", "dimension")}
@@ -136,14 +186,13 @@ def main():
                 row.update({"score": None, "markers": [], "justification": "", "parse_error": True})
             rows.append(row)
             if not args.dry_run and n % 50 == 0:              # 每 50 次落盘
-                out.parent.mkdir(parents=True, exist_ok=True)
-                out.write_text(json.dumps(rows, ensure_ascii=False, indent=2), encoding="utf-8")
-                print(f"   ...{n} 已存盘")
+                flush(); print(f"   ...{n} 已存盘")
 
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(rows, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"\n✅ {len(rows)} 行(含 {len(na_rows)} N/A) → {out}"
-          f"（下一步:python -m src.eval.aggregate --scores {out}）")
+    flush()
+    msg = f"\n✅ {len(rows)} 行(含 {len(na_rows)} N/A) → {out}"
+    if skipped:
+        msg += f"\n⚠️ 有 {skipped} 次因临时错误被跳过——再跑一次同一条命令会把它们补上(续跑)。"
+    print(msg + f"（下一步:python -m src.eval.aggregate --scores {out}）")
 
 
 if __name__ == "__main__":
