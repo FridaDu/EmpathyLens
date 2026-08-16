@@ -9,8 +9,8 @@
 - 同款改动已同步至 en_geo(保持 en_geo = en + 单一国家标签 的实验不变量)
 - 审校备注(留给论文 Discussion):母语者指出 "unconditional positive regard" / "positive reframing" 偏临床,casual app 较少这样说
 
-## v1.0.2 — 2026-06 (Week 8) — de native review by Jens Linden
-- de_v1-draft → de_v1:Jens Linden 德语母语审校通过,调整 7 处语言形式(规范结构不变)
+## v1.0.2 — 2026-06 (Week 8) — de native review by anonymous reviewer
+- de_v1-draft → de_v1:匿名德语母语审校者审校通过,调整 7 处语言形式(规范结构不变)
   - 常量重命名 `_DE_V1_DRAFT` → `_DE_V1`;`_V1_PROMPTS["de"]` 指向 `_DE_V1`
   - 句首 "auf natürlichem Deutsch" → "in einem natürlichen Deutsch"(母语者建议,语义不变)
   - Rolle "klarer zu sehen" → "sich klarer zu werden";Autonomie "selbst klarer zu sehen" → "sich selbst klarer zu werden"
@@ -26,7 +26,7 @@
 ## v1 — 2026-06 (Week 7)
 首个正式评估版,四套评估条件:
 - zh: calibrated per framework §3.1 + §3.0 axes A/B/C/D + §5.4 intention cluster Support/Cathart/Preserve-Face + §5.5 反向规约 M1/M4/M5/M6/M8
-- de_v1-draft: calibrated per framework §3.2; 待 Jens Linden 母语审校通过后升 de_v1
+- de_v1-draft: calibrated per framework §3.2; 待母语审校通过后升 de_v1
 - en: 有意保持 §3.3.2 未校准基线 (uncalibrated baseline),仅做格式整理与 zh/de 平齐
 - en_geo: framework §6.2 strong baseline (英文 prompt + 国家标签),回应 CuLEmo Finding 3
 

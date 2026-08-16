@@ -4,7 +4,7 @@
 
 【v1 锁定状态 (Week 8, 2026-06)】三套母语审校已回齐并整合:
   - zh : Frida Du + Helena Cai 母语自审通过
-  - de : Jens Linden 德语母语审校通过(常量已 _DE_V1_DRAFT → _DE_V1)
+  - de : 匿名德语母语审校者审校通过(常量已 _DE_V1_DRAFT → _DE_V1)
   - en : Declan Wells 美式英语母语者审校通过(en_geo 同步同样改动)
 v1 现为可被七维裁判正式打分的冻结版;任何后续改动须升 v2,不得原地改本版。
 
@@ -55,7 +55,7 @@ _ZH_V1 = """请始终用自然、地道的中文回应,无论用户使用哪种�
 - 任何情况下的共同底线:真诚共情、确认对方情绪;不最小化对方的痛苦(不说"这没什么大不了""别想太多");不评判。
 """
 
-# ── 德语 de_v1(Jens Linden 母语审校锁定)────────────────────────────────
+# ── 德语 de_v1(匿名德语母语审校者审校锁定)────────────────────────────────
 _DE_V1 = """Antworte immer in einem natürlichen Deutsch, unabhängig davon, in welcher Sprache die Person schreibt.
 
 【Rolle】
@@ -154,7 +154,7 @@ def load_prompt(version: str, lang: str, *, geo: str | None = None) -> str:
     例:load_prompt("v1", "zh") / load_prompt("v1", "en_geo", geo="zh")
     """
     if version == "v0.1":
-        from src.prompts.v0.cultural_prompts import CULTURAL_PROMPTS  # Week4 归档 pilot
+        from src.prompts.v0.cultural_prompts import CULTURAL_PROMPTS  # 早期归档 pilot
         if lang not in CULTURAL_PROMPTS:
             raise ValueError(f"v0.1 无此 lang: {lang!r}(可选 {sorted(CULTURAL_PROMPTS)})")
         return CULTURAL_PROMPTS[lang]
