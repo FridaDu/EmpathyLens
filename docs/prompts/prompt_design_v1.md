@@ -1,6 +1,6 @@
 # EmpathyLens · 文化模式 Prompt v1 · 设计说明 (合并版)
 > 四条评估条件:zh_v1 / de_v1 / en_v1(未校准基线)/ en+geo(国家标签强基线)
-> Authors: Frida Du · Helena Cai · Week 7–8 · zh 主导 Frida Du(L1 中文)/ de 主导 Frida(非母语,经 Jens Linden 母语审校锁定)/ en 主导 Helena Cai
+> Authors: Frida Du · Helena Cai · Week 7–8 · zh 主导 Frida Du(L1 中文)/ de 主导 Frida(非母语,经匿名德语母语审校者审校锁定)/ en 主导 Helena Cai
 > 落地 framework_CN_v2 §3.1 / §3.2 / §3.3 / §3.0 / §5.4 / §5.5 / §6.2 / §6.4 + evaluation_dimensions_v1.1
 > 配套:`prompt_versioning_convention.md`(版本约定)、`week7_sanity_check.md`(抽样+测试记录表)、`CHANGELOG.md`(三套 v1.0.1–.3 母语审校记录)
 > 本文件含四套 prompt 的**权威文本(code block)+ 逐条设计依据 + 七维对齐表 + 局限**。下方 code block 的四套 prompt 已内嵌为 src/prompts/registry.py 的常量(_ZH_V1 / _DE_V1 / _EN_V1 / _EN_GEO_V1),代码为权威;本文件与 registry 逐字一致(v1 锁定后已同步)。
@@ -9,13 +9,13 @@
 
 # 0. 总览与设计总原则
 
-Week 7 产出 = Week 8 评估管道要打分的"被评对象"。zh / de 用 Week 6 七维框架 + §3.0 四轴 + §5.4 意图簇 + §5.5 M 码反向规约,深化为 **calibrated v1**;en **故意保持未校准基线**(§3.3.2),作 Equitability 对照。三套统一用 Week 4 的五块结构:角色定义 / 行为规范 / 边界约束 / 输出格式 / 异常处理。三套均经母语者审校后锁定(zh 自审、de 由 Jens Linden、en 由美式母语者,见 `CHANGELOG.md`)。
+Week 7 产出 = Week 8 评估管道要打分的"被评对象"。zh / de 用 Week 6 七维框架 + §3.0 四轴 + §5.4 意图簇 + §5.5 M 码反向规约,深化为 **calibrated v1**;en **故意保持未校准基线**(§3.3.2),作 Equitability 对照。三套统一用 Week 4 的五块结构:角色定义 / 行为规范 / 边界约束 / 输出格式 / 异常处理。三套均经母语者审校后锁定(zh 自审、de 由匿名德语母语审校者、en 由美式母语者,见 `CHANGELOG.md`)。
 
 三条贯穿全文、来自 framework 的总原则:
 
 1. **单步形式是消融的一条臂,不是定论(§6.2)**。framework §6.2 给的通用骨架是"四步推理链"(情感状态分析→意图推断→策略选择→响应生成),但同节明确警示(IntentionESC Finding 2):链太长会让链尾"响应生成"学习信号衰减,**Week 7–9 必须对比 完整四步链 vs 两步链 vs 单步 prompt,不能假设越精细越好**。v1 采用**单步准则**形式(因生成阶段 thinking 全关,Week 2 决策),它是这个消融的 single-step 臂。四步/两步臂留待 Week 9。
 2. **每套都必须含跨文化共同基础(§6.2 / §4.3)**:共情、确认、避免最小化、避免评判、危机识别——不能因文化特异而牺牲。三套的"异常处理/共同底线"块即此。
-3. **每种语言都要母语者把关(§6.4)**:framework 引 HoMemeTown 韩语版"语法对但语用不对"的教训,要求每语文案分别请母语者审。落到三套 prompt:zh 由 Frida + Helena(母语)自审、**de 由德语母语者 Jens Linden 全权审校**、en 由美式英语母语者审校(§3.3.2 警告"英语≠美国白人中产英语")。三套均已审校通过并锁定。
+3. **每种语言都要母语者把关(§6.4)**:framework 引 HoMemeTown 韩语版"语法对但语用不对"的教训,要求每语文案分别请母语者审。落到三套 prompt:zh 由 Frida + Helena(母语)自审、**de 由匿名德语母语审校者全权审校**、en 由美式英语母语者审校(§3.3.2 警告"英语≠美国白人中产英语")。三套均已审校通过并锁定。
 
 ---
 
@@ -85,7 +85,7 @@ Week 7 产出 = Week 8 评估管道要打分的"被评对象"。zh / de 用 Week
 
 ---
 
-# 2. 德语模式 de_v1(已由 Jens Linden 母语审校锁定)
+# 2. 德语模式 de_v1(已由匿名德语母语审校者审校锁定)
 
 ## 2.1 理论依据(framework §3.2)
 
@@ -123,7 +123,7 @@ Du bist ein einfühlsamer Begleiter, der die deutsche Gesprächskultur respektie
 - Gemeinsame Grundlinie in jedem Fall: echte Empathie, Gefühle anerkennen; nichts kleinreden; nicht urteilen.
 ```
 
-> Jens Linden 审校(v1.0.2)调整 7 处语言形式(规范结构不变):句首 `auf natürlichem Deutsch`→`in einem natürlichen Deutsch`(团队定:尊重母语者保留)、`klarer zu sehen`→`sich klarer zu werden`(×2)、`Silver Lining`→`Lichtblick`、删 `amazing`、`Herumschweben`→`Ziellosigkeit`、`nummerierte Listen/Aufzählungspunkte`→`Listen oder Stichpunkte`。
+> 匿名德语母语审校者审校(v1.0.2)调整 7 处语言形式(规范结构不变):句首 `auf natürlichem Deutsch`→`in einem natürlichen Deutsch`(团队定:尊重母语者保留)、`klarer zu sehen`→`sich klarer zu werden`(×2)、`Silver Lining`→`Lichtblick`、删 `amazing`、`Herumschweben`→`Ziellosigkeit`、`nummerierte Listen/Aufzählungspunkte`→`Listen oder Stichpunkte`。
 
 ## 2.3 五块逐条(为什么 → framework → 七维 D)
 
@@ -143,7 +143,7 @@ Rolle 定位"认真对待+帮看清,排除 vorschnelle Lösungen/erzwungener Opt
 
 ## 2.5 局限
 
-- **母语自然度已由 Jens Linden 审校保障**:本套德语由非母语者(Frida)依 §3.2 撰写,若语体/虚拟式/搭配不自然会**直接污染 D6**。已由德语母语者 Jens Linden 审校通过(只改语言形式、不改规范结构),`de_v1-draft` 升 `de_v1`。这正是 §6.4 引 HoMemeTown 教训要防的。
+- **母语自然度已由匿名德语母语审校者审校保障**:本套德语由非母语者(Frida)依 §3.2 撰写,若语体/虚拟式/搭配不自然会**直接污染 D6**。已由匿名德语母语审校者审校通过(只改语言形式、不改规范结构),`de_v1-draft` 升 `de_v1`。这正是 §6.4 引 HoMemeTown 教训要防的。
 - 首轮无上文默认 Sie,可能与某些 casual 倾诉条语气不完全契合,sanity 时留意;危机资源单一(仅 Telefonseelsorge),奥/瑞德语区记 Limitations;规范密度张力同 zh。
 
 ---
@@ -260,7 +260,7 @@ en+geo 的 run-matrix 细节属 Week 8 评估管道的范畴,本文档只交付 
 
 **只差(刻意的实验自变量)**:zh/de 被注入四轴目标方向 + 意图簇 steering + M 码禁令(calibrated);en 没有这些(uncalibrated baseline);en+geo 只多一条国家标签(strong baseline)。各条件在格式、长度规约、安全底线上**对齐**,使观察到的差异尽量归因于"文化校准/标签"而非格式噪音——这是 Equitability 能干净归因的前提。
 
-**四条评估条件一览**:`zh_v1`(calibrated,已锁)、`de_v1`(calibrated,Jens 审校已锁)、`en_v1`(uncalibrated baseline,已锁)、`en+geo`(country-label strong baseline,已锁)。
+**四条评估条件一览**:`zh_v1`(calibrated,已锁)、`de_v1`(calibrated,匿名审校已锁)、`en_v1`(uncalibrated baseline,已锁)、`en+geo`(country-label strong baseline,已锁)。
 
 ---
 
@@ -276,7 +276,7 @@ en+geo 的 run-matrix 细节属 Week 8 评估管道的范畴,本文档只交付 
 
 2. **【§6.2 消融路线】四步链 vs 两步 vs 单步**。v1 是单步臂。framework 要求 Week 7–9 对比多步形式;但因生成阶段 thinking 全关(Week 2),显式多步链需另设(如多次调用或链写进响应),属技术设计。**建议 Week 9 据 v1 评估数据再做四步/两步臂,本周只交付单步 v1**——若同意则无需本周动作。
 
-**母语审校状态(§6.4,均已完成)**:zh ✅(Frida + Helena 自审,v1.0.1)/ de ✅(Jens Linden 审校,v1.0.2,`de_v1-draft`→`de_v1`)/ en ✅(美式英语母语者审校,v1.0.3)。
+**母语审校状态(§6.4,均已完成)**:zh ✅(Frida + Helena 自审,v1.0.1)/ de ✅(匿名德语母语审校者审校,v1.0.2,`de_v1-draft`→`de_v1`)/ en ✅(美式英语母语者审校,v1.0.3)。
 
 ---
 
