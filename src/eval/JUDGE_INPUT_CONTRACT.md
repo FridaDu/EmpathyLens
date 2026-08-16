@@ -1,149 +1,145 @@
-# LLM-as-a-Judge · IO 契约（Week 9 风控重写版）
+"""EmpathyLens — Week 7 sanity-check batch runner (generation only, NO scoring).
+对 week7_sanity_check.md §1 选定的 10 个场景 × 三语 v1 + 10 条 en_geo = 40 条,跑一次生成,存
+results/week7_sanity_check_v1.json,供作者逐条粗读(语言一致/格式/明显违背)。
+评分是 Week 8+ 的事 —— 本脚本不调 judge、不打分。
 
-Authors: Frida Du · Helena Cai · Week 7（首版）· Week 9（本次修订：反映合并调用后的新结构）
+Week 9 变更（两处，均为响应团队"Claude 开发者账号被封"的现实约束）：
+  ① 生成字段统一为 "gen_model"（原来是 "model"，见 JUDGE_INPUT_CONTRACT.md §2）。
+  ② 生成调用从"写死只认 Anthropic 的 src.cli.empathy_cli.call_model"改成
+     "按 --model 名前缀路由到任意一家的 src.llm_client.call_model_with_usage"。
+     旧版哪怕你传 --model deepseek-v4-pro，内部依然会尝试用 Anthropic API 调用，
+     在 Claude 账号被封期间会直接失败；新版可以用
+     `python -m src.run_sanity_check --model deepseek-v4-pro` 完全绕开被封的账号，
+     等 Claude 账号恢复后再把 --model 换回 claude-opus-4-6（或不传，用默认值）。
+     副作用：不再能拿到 Anthropic 专属的 stop_reason 字段（llm_client 目前没有统一
+     返回这个；见 _gen() 里的注释），sanity 阶段判断"是否截断"退化成看
+     response_text 是否明显过短/戛然而止，不影响本脚本的核心用途。
 
-Week 9 变更提要：评分【调用】单元从"响应 × 维度 × 裁判"合并为"响应 × 裁判"（单次调用
-一次性返回七维 JSON），调用量降至约 1/7；但评分【输出行】schema 保持"响应 × 维度 × 裁判"
-不变（§4），因此 `aggregate.py` 等下游消费者不需要任何改动——已用真实数据验证过。
+放置:src/run_sanity_check.py。运行(项目根,需 .env 里对应 provider 的 key):
+    python -m src.run_sanity_check                                # 默认 claude-opus-4-6,40 条
+    python -m src.run_sanity_check --model deepseek-v4-pro         # Claude 账号被封时用这个
+    python -m src.run_sanity_check --no-geo                        # 只跑 30 条(跳过 en_geo)
+    python -m src.run_sanity_check --dry-run                       # 不调 API,假响应,验证装配/schema
+"""
+from dotenv import load_dotenv
+load_dotenv()
 
-放置：`src/eval/JUDGE_INPUT_CONTRACT.md`。
+import argparse
+import json
+import time
+from datetime import datetime, timezone
+from pathlib import Path
 
----
+from src.dataset import load_dataset
+from src.prompts.registry import load_prompt, GEO_FILL
 
-## 1. 数据流总览
+PROMPT_VERSION = "v1"
+DEFAULT_MODEL = "claude-opus-4-6"
+DEFAULT_TEMPERATURE = 0.7
+DEFAULT_MAX_TOKENS = 600
 
-```
-generation (sanity / 全量)              evaluation (run_judge.py, Week 9 结构)
-  results/<run>.json  ──────────────►  loader ─► assemble_all（单次覆盖全部可评维度）
-   (responses + 生成元数据)                          │
-                                          三家裁判各调用一次 ─► 展开为逐维度行
-                                                                          │
-                                         results/scores_<run>.json ◄──────┘
-```
-
-- **被评对象**来自 `results/`（如 `full_gen_v1.json`，或 Tier 1/2 场景下的
-  `week7_sanity_check_v1.json`）。
-- **评分标尺**来自 `src/eval/rubrics.py` + `assemble_judge_input.py`。
-- judge **join** 数据集元数据靠 `(scenario_id, lang)` → `dataset_draft.json` 里
-  `id = f"{scenario_id}_{lang}"`。
-
----
-
-## 2. run_judge.py 的【输入】schema（= 生成脚本的输出，每条一个响应）
-
-每条响应记录至少含以下字段：
-
-| 字段 | 类型 | 说明 | judge 用途 |
-|---|---|---|---|
-| `prompt_version` | str | `"v1"` | 记录,scores 回写 |
-| `condition` | str | `zh`/`de`/`en`/`en_geo` | 决定**目标文化**(见 §3) |
-| `scenario_id` | str | `S02`… | join key |
-| `lang` | str | 输入文本语言(en_geo=源文化语言) | join key |
-| `geo` | str\|null | en_geo 的国别码,否则 null | 决定 en_geo 目标文化 |
-| `user_text` | str | 用户倾诉 | 拼进 judge 输入 |
-| `response_text` | str | **被评模型响应** | 拼进 judge 输入 |
-| `gen_model` **或** `model` | str | 生成模型 | self-vs-cross 判定（见下方 ⚠️ 字段名说明） |
-| `run_index` | int，可选 | 重复采样第几次；缺省视为 0 | scores 回写 |
-| `temperature` / `thinking_mode` / `stop_reason` / `output_tokens` / `latency_sec` | — | 生成元数据 | 记录/质检 |
-
-> ⚠️ **字段名不一致（Week 9 发现，已在 `run_judge.py` 里做兼容，未改动既有数据文件）**：
-> 本文档 Week 7 版原写的字段名是 `model`，`week7_sanity_check_v1.json`（`run_sanity_check.py`
-> 的输出）也确实用 `model`；但 `full_gen_v1.json`（全量生成脚本的输出）用的是 `gen_model`。
-> `run_judge.py` 现在会依次尝试 `gen_model` → `model`，两种命名都能吃，`run_index` 缺失时
-> 按 0 处理（对齐 sanity 阶段 N=1、无重复采样的情况）。**建议后续统一生成脚本的字段命名**
-> （在本文档里挑一个定为唯一标准，另一个改成别名或废弃），这条兼容逻辑只是权宜之计。
-
----
-
-## 3. 目标文化解析（condition → judge 的 target culture）与响应语言解析
-
-assemble_all 需要两个独立的信息（Week 9 起明确拆开，见下方 ⚠️）：
-
-| condition | 用于 join 的 dataset 记录 | D4/D5 评分基准（目标文化） | D6 评分基准（响应实际语言） |
-|---|---|---|---|
-| `zh` | `{sid}_zh` | 中文理想 | 中文 |
-| `de` | `{sid}_de` | 德语理想 | 德语 |
-| `en` | `{sid}_en` | 美式基线(assembler 已把"未校准基线"翻成 de-facto 目标) | 英语 |
-| `en_geo` | `{sid}_{geo}` | **该国别对应文化**(zh 场景的 en_geo 按**中文理想**评,看它靠国家标签贴到几分) | **恒为英语**（`registry.py` 的 `_EN_GEO_V1`: "Always respond in English"） |
-
-> ⚠️ **en_geo 的 D6 语言画像 bug（Week 9 修复）**：旧版 `assemble()` 只把 join 后的目标
-> 文化记录的 `lang` 字段喂给裁判做全部维度（含 D6）的语言/文化框定，对 en_geo 而言这个
-> `lang` 是 geo 对应的中文/德文——但 en_geo 响应实际恒为英文。裁判被告知"这应该是中文"
-> 却看到英文响应，把 D6（语言自然度）系统性打到 1.3~1.5（Week 8 数据复核发现，三家模型
-> 上高度一致，是典型的测量伪影而非真实的语言质量问题）。新版 `assemble_all()` 拆成
-> `response_lang`（D6 依据，en_geo 恒为 "en"）与 `record.get('lang')`（D4/D5 依据，
-> en_geo 时仍是 geo 对应文化）两个独立字段，互不污染。zh/de/en 三条件下两者本就一致，
-> 不受影响。**Week 9 用小样本子集重评后，应重点核对 en_geo 的 D6 分数是否回升到合理区间
-> ——这是判断"标签能否唤出目标文化"这一研究问题的一个必要前提清理，不是终点。**
-
----
-
-## 4. run_judge.py 的【输出】schema（scores 回写，Week 9 未变）
-
-`results/scores_<run>.json`，**评分单元 = (一条响应 × 一个维度 × 一个 judge)**——
-注意这是【输出行】的粒度，不是【调用】的粒度（调用粒度见 §5）：
-
-```json
-{
-  "scenario_id": "S02", "lang": "zh", "condition": "zh",
-  "prompt_version": "v1", "gen_model": "claude-opus-4-6", "run_index": 0,
-  "dimension": "D4",
-  "judge_model": "gpt-5.4",
-  "score": 2, "markers": ["..."], "justification": "...",
-  "applicable": true,
-  "self_judge": false
+# week7_sanity_check.md §1.2 选定的 10 条。
+SANITY_SCENARIOS = ["S02", "S05", "S06", "S08", "S14", "S15", "S16", "S17", "S18", "S20"]
+# en_geo 的国别标签按场景文化来源(week7_sanity_check.md 表 2.1b);geo 取语言码。
+EN_GEO_SOURCE = {
+    "S02": "zh", "S05": "de", "S06": "zh", "S08": "de", "S14": "zh",
+    "S15": "zh", "S16": "zh", "S17": "zh", "S18": "zh", "S20": "zh",
 }
-```
 
-聚合规则（`aggregate.py`，未改动）：
-- **三家裁判取中位数**；记录三家分歧(>1 分人工抽查)。
-- **self_judge 标志**：`judge_model == gen_model` → True。
-- `applicable=false`：N/A 维度（空轴 D4 等），不进 Equitability 文化分差。
 
----
+def _gen(system_prompt, user_text, model, temperature, dry_run):
+    """跑一次生成,返回 (response_text, 元数据 dict)。dry_run 时不调 API。
 
-## 5. 【Week 9 新增】评分【调用】的合并结构
+    元数据统一用 "gen_model" 作为模型字段名（Week 9 统一命名）。
+    生成走 src.llm_client.call_model_with_usage —— 按 model 名前缀（claude/gpt/deepseek）
+    路由到对应厂商，不再写死只认 Anthropic，Claude 账号被封时可以传
+    --model deepseek-v4-pro 完全绕开它。
 
-- 单次裁判调用覆盖【一条响应的全部可评维度】（自动排除 N/A，如空轴 D4），而非逐维度单独
-  调用。原始用户倾诉文本、文化上下文块在一次调用里只出现一次（而非随维度数重复 7 次）。
-- 裁判被要求输出**一个 JSON 对象**，顶层键为该次要求评分的维度代号（如 `"D1"`,`"D2"`…），
-  每个键对应 `{"markers": [...], "score": 1-5, "justification": "..."}`。
-- `run_judge.py` 解析后**展开**成 §4 描述的逐维度行——所以 `aggregate.py` 完全不需要
-  改动，已用真实数据验证。
-- **断点续跑**按"该(响应×裁判)组合是否还有缺失维度"判断：若有，发起（一次）调用补齐所有
-  缺失维度；若该组合下所有维度都已完成，跳过，不重复调用。
+    已知取舍：llm_client 目前不统一返回 stop_reason（Anthropic 有、OpenAI/DeepSeek 暂缺
+    可靠字段，为避免猜错字段名导致运行时报错，这里统一不采集，記 "n/a"）。sanity 阶段
+    判断截断改看 response_text 长度是否异常短，够用，不阻塞本脚本的核心目的。
+    """
+    if dry_run:
+        return ("[DRY-RUN 假响应] " + user_text[:18],
+                {"gen_model": model, "temperature": temperature, "max_tokens": DEFAULT_MAX_TOKENS,
+                 "thinking_mode": "disabled", "stop_reason": "n/a",
+                 "input_tokens": 0, "output_tokens": 0, "latency_sec": 0.0})
+    from src.llm_client import call_model_with_usage
+    t0 = time.time()
+    text, usage = call_model_with_usage(prompt=user_text, system=system_prompt,
+                                        model=model, temperature=temperature,
+                                        max_tokens=DEFAULT_MAX_TOKENS)
+    latency = round(time.time() - t0, 2)
+    meta = {"gen_model": model, "temperature": temperature, "max_tokens": DEFAULT_MAX_TOKENS,
+            "thinking_mode": "disabled", "stop_reason": "n/a",
+            "input_tokens": usage["input_tokens"], "output_tokens": usage["output_tokens"],
+            "latency_sec": latency}
+    return text, meta
 
----
 
-## 6. 【Week 9 新增】分级评估协议（Tier 1/2/3）
+def build_units(include_geo=True):
+    """装配评分前的'被评单元'列表(不含响应)。每个 dict 描述一次生成请求。"""
+    data = {r["id"]: r for r in load_dataset()}
+    units = []
+    for sid in SANITY_SCENARIOS:
+        for lang in ("zh", "de", "en"):                      # 三语 calibrated/baseline
+            rec = data[f"{sid}_{lang}"]
+            units.append({"condition": lang, "scenario_id": sid, "lang": lang,
+                          "geo": None, "user_text": rec["text"],
+                          "system": load_prompt(PROMPT_VERSION, lang)})
+    if include_geo:
+        for sid in SANITY_SCENARIOS:                         # en_geo 强基线
+            geo = EN_GEO_SOURCE[sid]
+            rec = data[f"{sid}_{geo}"]                       # 母语原文输入
+            units.append({"condition": "en_geo", "scenario_id": sid, "lang": geo,
+                          "geo": geo, "country": GEO_FILL[geo]["COUNTRY"],
+                          "user_text": rec["text"],
+                          "system": load_prompt(PROMPT_VERSION, "en_geo", geo=geo)})
+    return units
 
-| Tier | 数据范围 | 裁判 | 何时用 |
-|---|---|---|---|
-| 1 | `TIER_SUBSET_SCENARIOS`（10 条，同 `week7_sanity_check.md` §1.2） | 单裁判（默认 deepseek-v4-pro） | Prompt 改动后第一步冒烟 |
-| 2 | 同上 10 条 | 三裁判 | Tier 1 通过后定量确认 |
-| 3 | 60 条全量 | 三裁判 | 论文最终数据，计划内仅执行一次，强制要求 `--balance-checked` |
 
-`--tier 1`/`--tier 2` 会自动把 `--gen` 指向的文件过滤到这 10 条 `scenario_id` 范围内，
-不论来源文件本身覆盖了多少条——对已经只含 10 条的 `week7_sanity_check_v1.json` 是无害的
-幂等操作。
+def main():
+    ap = argparse.ArgumentParser(description="Week 7 sanity-check runner (generation only).")
+    ap.add_argument("--model", default=DEFAULT_MODEL,
+                    help=f"生成模型，按前缀路由到对应厂商(claude/gpt/deepseek开头)。默认 {DEFAULT_MODEL}；"
+                         f"Claude 账号被封期间可传 deepseek-v4-pro 绕开它。")
+    ap.add_argument("--temperature", type=float, default=DEFAULT_TEMPERATURE)
+    ap.add_argument("--no-geo", action="store_true", help="跳过 en_geo,只跑 30 条")
+    ap.add_argument("--dry-run", action="store_true", help="不调 API,验证装配/schema")
+    ap.add_argument("--output", default="results/week7_sanity_check_v1.json")
+    args = ap.parse_args()
 
----
+    units = build_units(include_geo=not args.no_geo)
+    print(f"▶️  {len(units)} 条 ({'含' if not args.no_geo else '不含'} en_geo) "
+          f"· model={args.model} · dry_run={args.dry_run}")
 
-## 7. 【Week 9 新增】预算与节流
+    records = []
+    for i, u in enumerate(units, 1):
+        tag = u["condition"] + (f"/{u['geo']}" if u["geo"] else "")
+        print(f"[{i:>2}/{len(units)}] {u['scenario_id']} {tag}")
+        text, meta = _gen(u["system"], u["user_text"], args.model, args.temperature, args.dry_run)
+        rec = {
+            "prompt_version": PROMPT_VERSION,
+            "condition": u["condition"],          # zh | de | en | en_geo
+            "scenario_id": u["scenario_id"],
+            "lang": u["lang"],                    # 输入文本语言(en_geo 为源文化语言)
+            "geo": u["geo"],                      # en_geo 的国别码,否则 None
+            "run_index": 0,                       # sanity 阶段 N=1，固定 0（与 full_gen 的字段对齐）
+            "user_text": u["user_text"],
+            "response_text": text,
+            "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+            **meta,                               # gen_model/temperature/thinking_mode/stop_reason/tokens/latency
+        }
+        if u["geo"]:
+            rec["country_label"] = u["country"]
+        records.append(rec)
 
-- 单次跑批硬顶 `--max-cost-eur`，按日累计硬顶 `--daily-cap-eur`（基于本地
-  `results/.budget_ledger.json` 台账）——两者都是**强制拒绝，无绕过参数**。
-- `--sleep-sec` 控制每次调用后的强制间隔（不论成功失败），默认 1.5 秒。
-- Tier 3 必须显式传 `--balance-checked`（代表已人工登录三家平台后台核对过实时余额），
-  否则拒绝启动。
-- ⚠️ 预算台账目前基于字符数估算成本，不是 provider 返回的真实 token 用量（`llm_client`
-  尚未返回 usage 字段）。团队仍需坚持每周六 checkpoint 的三家后台余额人工核对，不要只信任
-  台账数字。
+    out = Path(args.output)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(records, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"\n✅ 写入 {len(records)} 条 → {out}")
+    print("   下一步:作者按 week7_sanity_check.md §2 逐条粗读填表，或直接喂给 run_judge.py --tier 1/2。")
 
----
 
-## 8. 本次修订边界
-
-Week 9 只重写了 `run_judge.py` / `assemble_judge_input.py` / 新增 `budget_ledger.py`，
-`aggregate.py` / `week8_plots.py` 未改动（已验证兼容）。`PRICING` 常量仍是估算占位符，
-需要团队用三家平台真实账单校准后才能视为可信——这是这次重写唯一没有能力独立完成的一步。
+if __name__ == "__main__":
+    main()

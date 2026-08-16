@@ -31,7 +31,7 @@
 
 - 输入:上表 10 个 `scenario_id` × 三语(取 `dataset_draft.json` 对应 `id` 的 `text` 作 user 输入)× v1 prompt,各跑一次。
 - 模型:sanity 阶段可先只跑**一家**(建议 claude-opus-4-6)过 40 条看格式/语言;确认无误再决定是否三家全跑。最终评分(Week 8)才必须三家。
-- 输出:存 `results/week7_sanity_check_v1.json`,每条带 `prompt_version` / `condition` / `scenario_id` / `lang` / `model` / `temperature` / `thinking_mode` / `stop_reason` / `output_tokens` / `latency_sec` + 生成文本。
+- 输出:存 `results/week7_sanity_check_v1.json`,每条带 `prompt_version` / `condition` / `scenario_id` / `lang` / `gen_model`(Week 9 统一字段名,原文档误写作 `model`) / `temperature` / `thinking_mode` / `stop_reason` / `output_tokens` / `latency_sec` + 生成文本。
 - **不调 judge、不打分。**
 
 **en+geo 强基线也过一遍 sanity**(团队定本周加,prompt 见 `prompt_design_v1.md §4`):对同样 10 个场景各跑 1 条 en+geo,**国别标签匹配该场景文化**(zh 场景→China、de 场景→Germany、en 场景→United States),输入用母语原文、响应英文。共 **+10 条**,本轮 sanity 合计 **40 条**(30 三语 calibrated/baseline + 10 en+geo)。en+geo 的输入协议(母语原文 vs 英译)若跑批阶段另有考量,按团队定的来,本文档只要求"标签匹配场景文化 + 英文响应 + 不崩"。

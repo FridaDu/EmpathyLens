@@ -15,6 +15,10 @@
   ⑥ 断点续跑逻辑不变（仍按"响应×维度×裁判"粒度判断是否已完成），但现在的判断单位是
      "本次(响应×裁判)调用要不要发"——只要该响应在该裁判下还有未完成的维度，就会发起
      (一次)调用补齐所有缺失维度，不会因为部分维度已完成就重复调用整条。
+  ⑦ 预算台账实报：改用 llm_client.call_model_with_usage() 拿真实 token 用量算每次调用的
+     实际花费（而非字符数估算），跑批前的预算硬顶检查仍用字符数估算（那时还没有真实调用）。
+  ⑧ 生成记录的模型字段统一为 "gen_model"（原 week7_sanity_check_v1.json 用的 "model" 已
+     迁移，本文件不再做双字段名兼容，见 JUDGE_INPUT_CONTRACT.md §2）。
 
 工程保障（沿用 Week 8）：断点续跑(每 50 次落盘 + 启动跳过已完成)；自动重试 + 指数退避
 （应对服务商临时错误）；硬错误(余额不足/认证失败) → 存盘后干净退出。
@@ -113,28 +117,30 @@ def parse_judge_json_multi(text, expected_dims):
     return out
 
 
-def judge_call(call_model, user, system, model, retries=5, sleep_sec=1.5):
+def judge_call(call_model_with_usage, user, system, model, retries=5, sleep_sec=1.5):
     """调一次裁判(现在覆盖全部可评维度)，带重试 + 强制节流。
-    返回 (raw_text 或 None, err 或 None, fatal:bool)。
+    Week 9 改用 call_model_with_usage（来自 llm_client.py），额外拿到真实 token 用量，
+    供预算台账实报（而非字符数估算）。
+    返回 (raw_text 或 None, usage_dict 或 None, err 或 None, fatal:bool)。
     无论成功/失败/重试，每次真正发起调用后都会 sleep(sleep_sec)——这是 Week 9 新增的
     主动节流，防止短时间内爆发式请求（Week 8 的问题不只是总量大，也是没有节流）。"""
     delay = 4
     for attempt in range(retries):
         try:
-            result = call_model(prompt=user, system=system, model=model, temperature=0.0)
+            text, usage = call_model_with_usage(prompt=user, system=system, model=model, temperature=0.0)
             time.sleep(sleep_sec)
-            return result, None, False
+            return text, usage, None, False
         except Exception as e:
             time.sleep(sleep_sec)
             msg = str(e).lower()
             if any(k in msg for k in _FATAL):
-                return None, str(e)[:200], True
+                return None, None, str(e)[:200], True
             transient = any(k in msg for k in _TRANSIENT)
             if transient and attempt < retries - 1:
                 print(f"      ⏳ {model} 临时错误,{delay}s 后重试({attempt+1}/{retries}): {str(e)[:80]}")
                 time.sleep(delay); delay = min(delay * 2, 60); continue
-            return None, str(e)[:200], False     # 放弃这一次调用(不写行 → 下次重跑会重试)
-    return None, "max_retries", False
+            return None, None, str(e)[:200], False   # 放弃这一次调用(不写行 → 下次重跑会重试)
+    return None, None, "max_retries", False
 
 
 def estimate_cost(units, judges):
@@ -154,23 +160,18 @@ def build_units(gen_records, data):
     """对每条生成响应,装配【单次覆盖全部可评维度】的评分单元；N/A 维度(空轴 D4 等)单独
     列为 na_rows，不进入需要调用裁判的 units。
 
-    ⚠️ 字段名兼容说明（Week 9 发现的既有不一致，顺手修掉）：JUDGE_INPUT_CONTRACT.md §2
-    文档的字段名是 "model"，week7_sanity_check_v1.json（run_sanity_check.py 的输出）也用
-    "model"；但 full_gen_v1.json（Week 8 全量生成脚本的输出）用的是 "gen_model"，且带
-    "run_index"（sanity 阶段 N=1 没有这个字段，JUDGE_INPUT_CONTRACT.md §2 的表注也提到了
-    这一点）。旧版 run_judge.py 只认 "gen_model"，导致直接对 week7_sanity_check_v1.json
-    跑 Tier 1 会在这里报 KeyError——这条兼容逻辑修的就是这个，不用改生成脚本或已有数据文件。
-    建议团队后续统一生成脚本的字段命名（在 JUDGE_INPUT_CONTRACT.md 里挑一个定为唯一标准），
-    这里的兼容写法只是让 Week 9 的 Tier 1 能立刻可用，不是长期方案。"""
+    字段名约定（Week 9 统一，见 JUDGE_INPUT_CONTRACT.md §2）：生成记录的模型字段统一叫
+    "gen_model"。曾经存在 week7_sanity_check_v1.json 用 "model"、full_gen_v1.json 用
+    "gen_model" 的不一致，已把既有数据文件和 run_sanity_check.py 一并改成 "gen_model"
+    （见 CHANGELOG 或提交记录），这里不再做双字段名兼容——如果你手上还有更早跑出的、
+    字段名是 "model" 的生成文件，先跑一遍迁移（把 "model" 键改名成 "gen_model"）再喂给
+    本脚本，不要指望这里静默兼容旧格式（宁可显式报错，不要悄悄吃错数据）。"""
     units, na_rows = [], []
     for g in gen_records:
         ds = data[f"{g['scenario_id']}_{join_lang(g)}"]      # 目标文化的数据集记录
-        gen_model = g.get("gen_model") or g.get("model")
-        if gen_model is None:
-            raise KeyError(f"生成记录缺少 'gen_model'/'model' 字段: {g.get('scenario_id')}")
         base = {"scenario_id": g["scenario_id"], "lang": g["lang"], "condition": g["condition"],
                 "geo": g.get("geo"), "prompt_version": g["prompt_version"],
-                "gen_model": gen_model, "run_index": g.get("run_index", 0)}
+                "gen_model": g["gen_model"], "run_index": g.get("run_index", 0)}
         a = assemble_all(ds, g["response_text"], condition=g["condition"])
         for dim in a["na_dims"]:
             na_rows.append({**base, "dimension": dim, "judge_model": None,
@@ -267,7 +268,7 @@ def main():
         print(f"   断点续跑:已有 {len(prev)} 行,跳过已完成。")
 
     if not args.dry_run:
-        from src.llm_client import call_model
+        from src.llm_client import call_model_with_usage
 
     def flush():
         out.parent.mkdir(parents=True, exist_ok=True)
@@ -288,7 +289,8 @@ def main():
             if args.dry_run:
                 parsed = {d: {"markers": ["[dry]"], "score": 3, "justification": "[dry-run]"} for d in missing_dims}
             else:
-                raw, err, fatal = judge_call(call_model, u["user"], u["system"], j, sleep_sec=args.sleep_sec)
+                raw, usage, err, fatal = judge_call(call_model_with_usage, u["user"], u["system"], j,
+                                                     sleep_sec=args.sleep_sec)
                 if fatal:                                     # 余额/认证 → 存盘后干净退出
                     flush()
                     budget_ledger.record(actual_spend_this_run, note=f"{out.name} (中断于硬错误)")
@@ -300,10 +302,14 @@ def main():
                     print(f"   ⚠️ 跳过(重跑会重试) {u['scenario_id']}/{j}: {err}")
                     continue
                 parsed = parse_judge_json_multi(raw, missing_dims)
-                in_tok = len(u["system"] + u["user"]) / 4
-                out_tok = EST_OUTPUT_TOKENS_PER_DIM * len(missing_dims)
                 p = PRICING.get(j, {"in": 2.0, "out": 8.0})
-                call_cost = in_tok / 1e6 * p["in"] + out_tok / 1e6 * p["out"]
+                if usage:                                      # Week 9：优先用真实用量算成本
+                    call_cost = (usage["input_tokens"] / 1e6 * p["in"]
+                                + usage["output_tokens"] / 1e6 * p["out"])
+                else:                                           # 兜底：usage 拿不到时退回估算
+                    in_tok = len(u["system"] + u["user"]) / 4
+                    out_tok = EST_OUTPUT_TOKENS_PER_DIM * len(missing_dims)
+                    call_cost = in_tok / 1e6 * p["in"] + out_tok / 1e6 * p["out"]
                 actual_spend_this_run += call_cost
 
             for dim in missing_dims:
