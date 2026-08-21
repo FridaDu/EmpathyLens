@@ -1,172 +1,241 @@
 # EmpathyLens
 
-> A cross-cultural evaluation framework and prototype system for testing how reliably AI models handle culturally and linguistically ambiguous input, across Chinese, German, and English.
-> *跨文化 AI 评估框架与原型系统(中 / 德 / 英)*
+**Cross-cultural evaluation infrastructure for LLM outputs — Chinese · German · English**
 
-**Status:** Phase 2, Week 9 of 22 (technical core — risk-control infrastructure rebuild after Week 8's first full evaluation run)
-**Started:** 2026-04-20 · **Target completion:** 2026-09-20
+*跨文化 LLM 输出评估基础设施（中 / 德 / 英）*
 
-**Authors:** Frida Du (Feifan Du) · Helena Cai (Xinyan Cai)
-**Affiliation:** LMU Munich, B.Sc. Computational Linguistics
+[![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![Status](https://img.shields.io/badge/status-Phase%202%20(Week%209%2F22)-orange)]()
+[![Providers](https://img.shields.io/badge/LLM%20providers-OpenAI%20%7C%20Anthropic%20%7C%20DeepSeek-4B32C3)]()
 
----
+> How do you tell whether an LLM handles a German user's grief the way German users actually
+> need — and not merely the way an English-trained model assumes anyone should be comforted?
+> EmpathyLens builds the measurement infrastructure to answer that question, and packages it as
+> a reusable, cost-controlled evaluation toolkit.
 
-## What We Are Doing
-
-Mainstream AI products (Character.ai, Replika, Pi, Maoxiang) are predominantly trained and tuned on English-language data, but increasingly deployed across non-English contexts where communication norms differ substantially. This project builds and validates an evaluation infrastructure to answer three questions:
-
-1. **Diagnostic.** What culturally-mismatched response patterns do mainstream AI systems exhibit when handling Chinese, German, and English input?
-2. **Methodological.** Can culture-specific system prompts measurably reduce these mismatches, and can the effect be reliably measured by an automated, reference-free LLM-as-a-Judge pipeline?
-3. **Tooling.** Can the resulting evaluation framework be packaged as a reusable, open-source toolkit for testing AI system outputs across languages more broadly — **including a cost-controlled, reproducible evaluation protocol**?
-
-*主流 AI 产品几乎都基于英语数据训练,但被部署到中德文等差异显著的文化场景。本项目搭建并验证一套评估基础设施,从诊断、方法、工具三层回答上述问题——工具层现在也包含一套成本可控、可复现的分级评估协议。*
+**Authors:** Frida Du (Feifan Du) · Helena Cai (Xinyan Cai) — LMU Munich, B.Sc. Computational Linguistics
+**Timeline:** 2026-04 → 2026-09 · currently Phase 2, Week 9 of 22
 
 ---
 
-## Engineering Highlights
+## Why this matters
 
-- **Multi-provider LLM integration:** a single, unified client (`llm_client.py`) abstracts over three LLM providers (OpenAI, Anthropic, DeepSeek), so evaluation logic stays provider-agnostic.
-- **Automated, reference-free evaluation pipeline:** an LLM-as-a-Judge system (`run_judge.py`) that scores model outputs against a 7-dimension rubric without gold-standard reference answers, including self-vs-cross evaluation reporting.
-- **Cost-controlled, tiered evaluation protocol (★ new, Week 9):** after an uncontrolled first full run (Week 8: 6,165 judge calls) exhausted API budget faster than the built-in cost estimator anticipated, the pipeline was rebuilt around a three-tier protocol — Tier 1 (single-judge smoke test on a 10-item subset), Tier 2 (three-judge confirmation on the same subset), Tier 3 (full 60-item, three-judge run, executed exactly once, with mandatory manual balance checks before/during execution). Judge calls were also restructured from one call per (response × dimension × judge) to one call per (response × judge) returning all 7 dimensions at once — cutting call volume roughly 7×.
-- **Reproducible dataset pipeline:** dataset construction, schema validation, and inter-rater reliability computation (Cohen's κ) are fully scripted — see `src/validate_dataset.py` and `src/compute_kappa.py`.
-- **Structured, machine-readable rubric:** evaluation dimensions and the 14-token intention taxonomy are defined as code (`eval/rubrics.py`), not just documentation, so they can be consumed programmatically by the pipeline.
+Consumer AI companionship products (Character.ai, Replika, Pi, 猫箱) are trained predominantly
+on English data, then deployed into markets where the norms of *good emotional support* differ
+substantially. American-mainstream support tends toward explicit validation, fairly rapid positive
+reframing, and actionable advice. German norms lean toward **acknowledging the negative** before
+offering any silver lining. Chinese norms often prioritize **presence over action** and relational
+rather than individualist attribution.
 
----
+A model that applies the first pattern to all three audiences isn't neutral — it is systematically
+mismatched, in a domain where mismatch carries real cost. **Measuring that mismatch reliably is
+the hard part, and that's what this project builds.**
 
-## Current Progress
-
-| Phase | Weeks | Focus | Status |
-|---|---|---|---|
-| 1. Foundations | 1–6 | Research questions, MVP, test dataset, eval rubric | ✅ Done |
-| 2. Technical Core | 7–15 | Prompt iteration, LLM-as-a-Judge pipeline, RAG, web app | 🔄 In progress — Week 7 (culture-mode prompts v1) and Week 8 (automated evaluation pipeline, first full run) complete. **Week 9: risk-control infrastructure rebuild in progress** (see Engineering Highlights above) |
-| 3. Product & Writing | 16–22 | Deployment, paper, arXiv submission | — Week 16 public deployment redesigned as a tiered system: a static pre-recorded case library by default, with an optional, rate-limited, DeepSeek-only live demo layer |
-
----
-
-## A Note on the Week 8 → Week 9 Transition
-
-The project's first full evaluation run (Week 8) generated 300 model responses and 6,165 judge calls across three LLM providers within roughly a week, and exhausted the API budget faster than the pipeline's cost estimator predicted — the estimator used hard-coded per-token pricing rather than actuals, and the budget cap could be bypassed with a `--yes` flag. No data or account was lost; this was a **billing/cost-control gap**, not a policy violation.
-
-Starting Week 9, the evaluation pipeline runs on a **tiered protocol** (see Engineering Highlights) with a hard, non-bypassable budget cap, actively-throttled call spacing, and mandatory manual balance checks before any full-dataset run. We're documenting this openly because a cost-controlled, auditable evaluation protocol is itself part of what Sub-RQ 3 (tooling) is meant to deliver — not a footnote to hide.
+This directly connects to **EU AI Act Article 15** (accuracy and robustness of high-risk AI
+systems): robustness claims that hold only for English-language inputs are not robustness claims
+at all.
 
 ---
 
-## Tech Stack
+## What's built (and verified)
 
-- **Language:** Python 3.12
-- **LLM Providers:** OpenAI (GPT-5.4), Anthropic (Claude Opus 4.6), DeepSeek (V4-Pro)
-- **Libraries:** `openai`, `anthropic`, `python-dotenv`, `pandas`, `matplotlib`
-- **Planned for later phases:** `chromadb` (Week 10–11, RAG), `streamlit` (Week 15, web app)
+| Component | What it does |
+|---|---|
+| **60-item trilingual test set** | 20 scenarios × zh/de/en, natively authored (not translated), covering mild venting / adversarial / control / crisis, with per-item cultural metadata |
+| **7-dimension rubric as code** | `eval/rubrics.py` — dimensions + a closed 14-token intention taxonomy, machine-readable rather than prose-only |
+| **Reference-free LLM-as-a-Judge pipeline** | `eval/run_judge.py` — scores outputs with no gold-standard answers, across three judge models, with self-vs-cross-judgment reporting |
+| **Tri-provider abstraction** | `llm_client.py` — one interface over OpenAI / Anthropic / DeepSeek; evaluation logic stays provider-agnostic |
+| **Tiered, cost-controlled protocol** | Non-bypassable budget caps, active throttling, real-token-usage accounting, code-enforced manual checkpoints |
+| **Reproducible data pipeline** | Schema validation + Cohen's κ inter-rater reliability, fully scripted |
 
----
-
-## Repository Structure
-
-- `docs/` — methodology decisions and research notes
-  - `methodology_notes.md` — cross-week methodological decision log (now includes the Week 9 risk-control protocol)
-  - `annotation_guidelines_v1_2.md` — annotation guideline (Week 5)
-  - `evaluation_dimensions_v1_1.md` — 7-dimension evaluation rubric (Week 6)
-  - `七维rubric速查卡.md` — one-page rubric cheat sheet (Week 6)
-  - `prompt_engineering_basics.md` / `week4_mvp_notes.md` — Week 4 notes
-- `data/`
-  - `dataset_draft.json` — the 60-item test dataset (source of truth)
-- `annotations/` — annotation CSVs + Kappa pilot rounds (frida/helena r1, r2)
-- `src/` — source code
-  - `dataset.py` — dataset schema / controlled vocab / loader
-  - `validate_dataset.py` — structure & schema validator
-  - `fill_annotations.py` / `merge_filled.py` / `make_skeleton.py` — dataset build helpers
-  - `compute_kappa.py` / `make_kappa_sheets.py` — inter-rater reliability (Cohen's κ)
-  - `inject_design_metadata.py` — scenario design metadata injector
-  - `llm_client.py` — unified tri-provider client (Claude / GPT / DeepSeek)
-  - `eval/` — evaluation pipeline
-    - `rubrics.py` — machine-readable 7-dimension rubric + intention taxonomy
-    - `assemble_judge_input.py` — LLM-as-a-Judge input assembler; **as of Week 9, one call per (response × judge) returns all 7 dimensions at once**, rather than one call per (response × dimension × judge)
-    - `run_judge.py` — evaluation runner; **as of Week 9, supports `--tier {1,2,3}`, enforces a hard non-bypassable budget cap, and actively throttles calls**
-  - `prompts/cultural_prompts.py` — three cultural-mode system prompts (zh / de / en), v1 (Week 7)
-  - `cli/empathy_cli.py` — Week 4 CLI: one input → three cultural-mode responses
-  - `tests/test_inputs.py` — 5 seed inputs (superseded by the 60-item dataset)
-  - `api_calls/mvp.py` — Week 2 tri-provider MVP (superseded by the CLI)
-- `results/` — experiment output JSONs, incl. first full evaluation run (Week 8) and the `.budget_ledger.json` cost-tracking log (Week 9+)
-- `.env.example` — template for API keys (real `.env` is gitignored)
-- `requirements.txt` — Python dependencies
+**Scale of the first full evaluation run:** 300 generated responses × 3 providers × 4 prompt
+conditions, scored on 7 dimensions by 3 independent judge models → 6,210 scored data points.
 
 ---
 
-## Quick Start
+## Two engineering findings worth reading
 
-**1. Clone the repo:**
+These are the parts a reviewer might actually want to ask about.
+
+### 1. Catching a measurement artifact that would have corrupted a core result
+
+One experimental condition (`en_geo` — an English prompt plus a country-context label, our strong
+baseline for testing whether a nationality tag alone can substitute for real cultural calibration)
+scored **1.43 / 5** on language naturalness, versus 4.50–4.92 for every other condition.
+
+That looked like a dramatic finding. It wasn't. The judge prompt was being told the target
+language was Chinese/German (inherited from the item's target-culture record), while `en_geo`
+responses are by design always in English. The judge was correctly scoring a contradiction we had
+constructed. Root cause was a conflation of two distinct fields: *the language the response is
+actually in* (which governs naturalness scoring) versus *the cultural norm the response is being
+evaluated against* (which governs cultural-fit scoring). These were separated, with assertion
+tests added.
+
+**Why this matters:** the affected condition is precisely the one testing our most interesting
+hypothesis. Publishing a 3-point gap that was an artifact of our own prompt assembly would have
+been considerably worse than the delay of finding it. Contamination scope was then traced
+explicitly — cultural-fit and intention dimensions were unaffected, and the Equitability metric
+never ingested this condition at all.
+
+### 2. Rebuilding the pipeline after a budget failure
+
+The first full run issued 300 generation calls plus **6,165 judge calls** in about a week, and
+exhausted the API budget faster than the pipeline's own estimator predicted. Root causes, in order
+of contribution:
+
+1. **Structural over-calling** — the judge was invoked once per *(response × dimension × judge)*: 7 × 3 = 21 calls per response.
+2. **Uncalibrated cost estimation** — hard-coded per-token pricing, never reconciled against invoices.
+3. **A bypassable cap** — `--max-cost-eur` could be overridden with `--yes`.
+4. **No active throttling** — back-off existed only *after* an error.
+
+The fix was structural rather than cosmetic. Judge calls now return all applicable dimensions in a
+single JSON response: **~1/7 the call volume** for identical output data (verified — the rebuilt
+pipeline reproduces the same 6,210-row output schema, and every downstream consumer required zero
+changes). Budget caps became non-bypassable at both per-run and per-day granularity, backed by a
+local ledger using **provider-reported token counts** rather than character-count estimates. Manual
+balance verification became a code-enforced precondition for any full-dataset run.
+
+A side benefit: user disclosures — including crisis-scenario items — were previously embedded up to
+21 times per response across outbound requests. Now 3.
+
+**Why this matters:** the incident is documented here rather than quietly deleted from the commit
+history, because a cost-controlled, auditable evaluation protocol is part of what this project
+claims to deliver. An evaluation framework nobody can afford to run twice isn't reusable.
+
+---
+
+## Preliminary findings
+
+⚠️ **Read as directional, not conclusive.** Single-sample generation (N=1), no significance testing
+yet, one prompt version. The locked full evaluation that these claims will stand or fall on is
+scheduled for Week 13.
+
+- **D7 (progression & tension-handling) is the weakest dimension** across all conditions
+  (4.24 vs 4.56–4.93 for the other six).
+- **The weak point is not where we expected.** Splitting D7 by scenario type: *direct* adversarial
+  input ("you're just a machine") scores **4.45** — the explicit handling written into the prompts
+  works. *Indirect, withdrawing* adversarial input ("never mind, you wouldn't get it") scores
+  **3.65**. Models fall back to reassurance templates when a user quietly closes the conversation,
+  which is exactly the failure mode our framework predicts but the prompts didn't yet name.
+- **Cross-model variance is largest in Chinese** (D7: 3.88–4.95 across the three models), suggesting
+  the Chinese guidance may be less consistently executable across models than the German version.
+
+---
+
+## Tech stack
+
+**Python 3.12** · `openai` · `anthropic` · `pandas` · `matplotlib` · `python-dotenv`
+Planned: `chromadb` (retrieval), `streamlit` (demo app)
+
+**Methods:** LLM-as-a-Judge (reference-free) · multi-judge median with inter-judge agreement ·
+self-vs-cross-judgment bias reporting · inter-annotator reliability (Cohen's κ) ·
+pooled-baseline confounder correction for cross-language score gaps
+
+---
+
+## Quick start
 
 ```bash
-git clone https://github.com/FridaDu/EmpathyLens.git
-cd EmpathyLens
-```
-
-**2. Set up Python environment:**
-
-```bash
-python3.12 -m venv .venv
-source .venv/bin/activate
+git clone https://github.com/FridaDu/EmpathyLens.git && cd EmpathyLens
+python3.12 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
+cp .env.example .env          # add your OPENAI / ANTHROPIC / DEEPSEEK keys
 ```
 
-**3. Configure API keys:** Copy `.env.example` to `.env` and fill in your own keys:
-
-```
-OPENAI_API_KEY=sk-...
-ANTHROPIC_API_KEY=sk-ant-...
-DEEPSEEK_API_KEY=sk-...
-```
-
-**4. Run the MVP (Week 4 CLI):**
+**Verify the dataset and rubric (no API calls, no cost):**
 
 ```bash
-# Batch: run all 5 test inputs through the three cultural modes, save to results/
-python -m src.cli.empathy_cli --batch
-
-# Or respond to a single disclosure interactively
-python -m src.cli.empathy_cli --text "我妈又催我相亲了,烦死了。"
-```
-
-**5. Validate the dataset & evaluation rubric:**
-
-```bash
-python -m src.validate_dataset           # 60 records, schema check (expect 0 errors)
+python -m src.validate_dataset           # 60 records, schema check → expect 0 errors
 python -m src.eval.rubrics               # 7 dimensions + 14-token intention taxonomy
 python -m src.eval.assemble_judge_input  # judge-input assembler self-test
 ```
 
-**6. Run the evaluation pipeline (tiered, as of Week 9):**
+**Generate responses across the three cultural modes:**
 
 ```bash
-# Tier 1: single-judge smoke test on the 10-item sanity subset — cheapest, run this first
-python -m src.eval.run_judge --tier 1 --gen results/week7_sanity_check_v1.json --judges deepseek-v4-pro
-
-# Tier 2: three-judge confirmation on the same subset
-python -m src.eval.run_judge --tier 2 --gen results/week7_sanity_check_v1.json
-
-# Tier 3: full 60-item, three-judge run — intended to be run once per prompt version,
-# with manual provider-dashboard balance checks before starting
-python -m src.eval.run_judge --tier 3 --gen results/full_gen_v1.json --max-cost-eur 15
+python -m src.cli.empathy_cli --text "我妈又催我相亲了,烦死了。"
 ```
 
-The budget cap is enforced with no bypass flag. If the estimated cost exceeds `--max-cost-eur`, the run exits without spending; lower the scope (fewer judges, smaller subset) or raise the cap deliberately after checking actual provider pricing.
+**Run the evaluation pipeline (tiered):**
+
+```bash
+# Tier 1 — single judge, 10-item subset: cheapest, run this first after any prompt change
+python -m src.eval.run_judge --tier 1 --gen results/week7_sanity_check_v1.json
+
+# Tier 2 — three judges, same subset: quantitative confirmation
+python -m src.eval.run_judge --tier 2 --gen results/week7_sanity_check_v1.json
+
+# Tier 3 — three judges, full 60 items: final data; requires explicit balance confirmation
+python -m src.eval.run_judge --tier 3 --gen results/full_gen_v1.json \
+    --balance-checked --max-cost-eur 15 --daily-cap-eur 20
+```
+
+Add `--dry-run` to any command to exercise the full pipeline without spending anything. Budget
+caps have no override flag: if the estimate exceeds the cap, the run exits without spending.
+
+---
+
+## Repository structure
+
+```
+data/         dataset_draft.json — 60-item trilingual test set (source of truth)
+annotations/  annotation CSVs + Cohen's κ pilot rounds
+docs/         methodology decision log, annotation guidelines, rubric spec, budget tracking
+src/
+  dataset.py            schema / controlled vocabulary / loader
+  validate_dataset.py   structure & schema validator
+  compute_kappa.py      inter-rater reliability
+  llm_client.py         unified tri-provider client (+ token-usage reporting)
+  eval/
+    rubrics.py               machine-readable 7-dimension rubric + intention taxonomy
+    assemble_judge_input.py  judge-input assembler (one call → all applicable dimensions)
+    run_judge.py             tiered evaluation runner with enforced budget caps
+    aggregate.py             multi-judge medians, self-vs-cross, Equitability
+    budget_ledger.py         persistent cost ledger
+  prompts/registry.py   version-locked cultural-mode prompts (native-reviewer approved)
+  viz/                  publication-grade figures
+results/      experiment outputs + figures
+```
+
+---
+
+## Roadmap
+
+| Phase | Weeks | Focus | Status |
+|---|---|---|---|
+| 1 · Foundations | 1–6 | Research design, MVP, test set, rubric | ✅ Complete |
+| 2 · Technical core | 7–15 | Prompts, evaluation pipeline, retrieval, demo | 🔄 Week 9 — risk-control rebuild |
+| 3 · Product & writing | 16–22 | Public deployment, paper, arXiv | ⏳ Planned |
+
+Public deployment will use a static pre-recorded case library by default, with an optional
+rate-limited live layer — so a public demo can't become an unbounded cost surface.
+
+---
+
+## Ethics
+
+This is a research prototype, **not a clinical tool**. All demo surfaces carry that statement
+explicitly. Every cultural-mode prompt embeds crisis recognition and locale-appropriate
+professional referral (Beijing Crisis Intervention Center / Telefonseelsorge / 988). Test data is
+anonymized and authored by the team, not scraped from real users in distress. The paper includes a
+standalone Ethics Statement.
 
 ---
 
 ## Citation
 
-Placeholder — to be updated upon paper completion:
-
-> Du, F., & Cai, X. (2026). *EmpathyLens: A Cross-Cultural Evaluation Framework for AI Emotional Companionship.* LMU Munich.
+```bibtex
+@misc{du2026empathylens,
+  author = {Du, Feifan and Cai, Xinyan},
+  title  = {EmpathyLens: A Cross-Cultural Evaluation Framework for AI Emotional Companionship},
+  year   = {2026},
+  note   = {LMU Munich. Preprint in preparation.}
+}
+```
 
 ---
 
-## License
+## License & contact
 
-MIT License. See [LICENSE](./LICENSE).
-
----
-
-## Contact
-
-For questions or collaboration: open an issue, or contact the authors via LMU Munich.
+MIT — see [LICENSE](./LICENSE). Questions, collaboration, or feedback: open an issue.
