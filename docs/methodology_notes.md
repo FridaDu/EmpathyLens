@@ -1,7 +1,7 @@
 # Methodology Notes — EmpathyLens
 
 Authors: Frida Du, Helena Cai
-Started: 2026-05-02 (Week 2)
+Started: 2026-05-02 (Stage 2)
 
 A running log of methodological decisions. Each decision records what, why, and what alternatives were considered.
 
@@ -29,8 +29,8 @@ A running log of methodological decisions. Each decision records what, why, and 
 - Chen, C. (2026). Three reasons why DeepSeek's new model matters. *MIT Tech Review*, 2026-04-24.
 - Horowitz, M. C. (2026). DeepSeek V4 Signals a New Phase in the U.S.–China AI Rivalry. *CFR*, 2026-04-29.
 
-**Lock-in note (2026-05-28).** During Week 4, teammate code temporarily diverged to `claude-sonnet-4-5`. It was corrected back to `claude-opus-4-6`. The model is a **locked** decision: any change updates this section first, then all code, in sync — never the reverse. Mixing models across runs makes results non-comparable.
-*中文备注:Week 4 时有代码一度用了 claude-sonnet-4-5,已改回 claude-opus-4-6。模型是锁定决策——要改先改本节再改代码,两边同步,绝不各写各的。*
+**Lock-in note (2026-05-28).** During Stage 4, teammate code temporarily diverged to `claude-sonnet-4-5`. It was corrected back to `claude-opus-4-6`. The model is a **locked** decision: any change updates this section first, then all code, in sync — never the reverse. Mixing models across runs makes results non-comparable.
+*中文备注:Stage 4 时有代码一度用了 claude-sonnet-4-5,已改回 claude-opus-4-6。模型是锁定决策——要改先改本节再改代码,两边同步,绝不各写各的。*
 ---
 
 ## 2. Reasoning / Thinking Mode
@@ -41,7 +41,7 @@ A running log of methodological decisions. Each decision records what, why, and 
 - Anthropic: thinking parameter not passed (default off)
 - DeepSeek: `extra_body={"thinking": {"type": "disabled"}}`
 
-For LLM-as-a-Judge (Week 8), thinking may be re-enabled for the judge. To be decided when the evaluation pipeline is built.
+For LLM-as-a-Judge (Stage 8), thinking may be re-enabled for the judge. To be decided when the evaluation pipeline is built.
 
 **Rationale.** Mainstream consumer companionship products (Character.ai, Replika, Pi, Maoxiang) deploy without thinking due to (1) latency requirements (<1s first-token), (2) unit economics (thinking generates 10–50× more tokens), and (3) product fit (companionship is intuitive-presence, not deliberative-analysis). Enabling thinking during generation would test a configuration no consumer product actually deploys, conflating model capability with deployment configuration and undermining our research question.
 
@@ -71,11 +71,11 @@ For LLM-as-a-Judge (Week 8), thinking may be re-enabled for the judge. To be dec
 **Tentative decision.** Approach (b), N = 3–5 per condition. Real-world products deploy with default stochastic sampling, and our RQ targets typical deployed behavior. Reproducibility is preserved by (1) full configuration metadata in every output JSON and (2) public release of the output corpus.
 
 **To resolve.**
-- Week 5–6: factor N into total run count when designing the test dataset.
-- Week 8: finalize N (3 vs 5) based on observed budget consumption.
-- Week 8: implement aggregate analysis (mean, variance, distributional plots).
+- Stage 5–6: factor N into total run count when designing the test dataset.
+- Stage 8: finalize N (3 vs 5) based on observed budget consumption.
+- Stage 8: implement aggregate analysis (mean, variance, distributional plots).
 
-*中文备注:LLM 默认采样有随机性,同一输入跑两次结果不同。Week 8 之前需要决定:每条输入跑几次。暂定 3-5 次。*
+*中文备注:LLM 默认采样有随机性,同一输入跑两次结果不同。Stage 8 之前需要决定:每条输入跑几次。暂定 3-5 次。*
 
 ---
 
@@ -83,7 +83,7 @@ For LLM-as-a-Judge (Week 8), thinking may be re-enabled for the judge. To be dec
 
 **Decision (2026-05-02, updated 2026-05-28).** Every run is persisted as JSON with content + full run-configuration metadata.
 
-The Week 2 `mvp.py` used a flat per-call schema (`provider / lang / user_input / ai_response / status`). From Week 4, the canonical format is the one produced by `src/cli/empathy_cli.py` — one record per input, with all three cultural-mode responses nested under it, plus test-item metadata:
+The Stage 2 `mvp.py` used a flat per-call schema (`provider / lang / user_input / ai_response / status`). From Stage 4, the canonical format is the one produced by `src/cli/empathy_cli.py` — one record per input, with all three cultural-mode responses nested under it, plus test-item metadata:
 
 ```json
 {
@@ -115,14 +115,14 @@ The Week 2 `mvp.py` used a flat per-call schema (`provider / lang / user_input /
 }
 ```
 
-`prompt_version`, `temperature`, and `thinking_mode` — listed as "anticipated" in the original draft — are **now in use**. Each record is self-contained (config + input + all outputs + test metadata), so the Week 8 evaluation pipeline can consume it without joining other tables.
+`prompt_version`, `temperature`, and `thinking_mode` — listed as "anticipated" in the original draft — are **now in use**. Each record is self-contained (config + input + all outputs + test metadata), so the Stage 8 evaluation pipeline can consume it without joining other tables.
 
 **Still anticipated** as the project scales:
-- `seed` (Week 8+, only if a fixed-seed approach is adopted — see §3)
-- `run_index` (Week 8+, under repeated-sampling Approach (b))
-- `evaluation_scores` (Week 8+, from LLM-as-a-Judge)
+- `seed` (Stage 8+, only if a fixed-seed approach is adopted — see §3)
+- `run_index` (Stage 8+, under repeated-sampling Approach (b))
+- `evaluation_scores` (Stage 8+, from LLM-as-a-Judge)
 
-*中文备注:Week 2 的 mvp.py 是扁平 schema;Week 4 起以 empathy_cli 的嵌套格式为准。prompt_version / temperature / thinking_mode 已经在用了,不再是"待加"。*
+*中文备注:Stage 2 的 mvp.py 是扁平 schema;Stage 4 起以 empathy_cli 的嵌套格式为准。prompt_version / temperature / thinking_mode 已经在用了,不再是"待加"。*
 
 ---
 
@@ -130,38 +130,38 @@ The Week 2 `mvp.py` used a flat per-call schema (`provider / lang / user_input /
 
 | # | Decision | Target                                           |
 |---|---|--------------------------------------------------|
-| 1 | Final N for repeated sampling | Week 8                                           |
-| 2 | Judge model and thinking-mode for LLM-as-a-Judge | Week 8                                           |
-| 3 | Whether to use a second judge (Cohen's κ) | Week 8                                           |
-| 4 | Prompt versioning convention | Week 7                                           |
-| 5 | Inter-rater reliability protocol for human annotation | ✅ Resolved Week 5 → see §8                       |
-| 6 | Baseline design for measuring the calibration effect: cross-language (English mode) vs within-language (same-language uncalibrated) | Week 7                                           |
-| 7 | Self-judging bias handling (judge model == generator model) | ✅ Resolved Week 6 → §9 (self-vs-cross reporting) |
+| 1 | Final N for repeated sampling | Stage 8                                           |
+| 2 | Judge model and thinking-mode for LLM-as-a-Judge | Stage 8                                           |
+| 3 | Whether to use a second judge (Cohen's κ) | Stage 8                                           |
+| 4 | Prompt versioning convention | Stage 7                                           |
+| 5 | Inter-rater reliability protocol for human annotation | ✅ Resolved Stage 5 → see §8                       |
+| 6 | Baseline design for measuring the calibration effect: cross-language (English mode) vs within-language (same-language uncalibrated) | Stage 7                                           |
+| 7 | Self-judging bias handling (judge model == generator model) | ✅ Resolved Stage 6 → §9 (self-vs-cross reporting) |
 
-*中文备注:六项待定决策及目标周次;其中 #5(人工标注一致性协议)是 Week 5 要落地的。*
+*中文备注:六项待定决策及目标周次;其中 #5(人工标注一致性协议)是 Stage 5 要落地的。*
 ---
 
 ## 6. Prompt Engineering Decisions
 
-**Decision (Week 4).** v1 cultural-mode prompts use a **single-step "guideline" form**, not the explicit four-step reasoning chain of framework §6.2.
+**Decision (Stage 4).** v1 cultural-mode prompts use a **single-step "guideline" form**, not the explicit four-step reasoning chain of framework §6.2.
 
-**Rationale.** Generation runs with thinking disabled (§2). With no hidden-reasoning space, an explicit chain would either print all reasoning (unfit for a companion reply) or be skipped. So the chain's intent is encoded as direct behavioral guidelines. The four-step vs single-step comparison is a Week 7–9 ablation (anticipated by framework §6.2). Week-4 specifics: see `week4_mvp_notes.md §5`.
+**Rationale.** Generation runs with thinking disabled (§2). With no hidden-reasoning space, an explicit chain would either print all reasoning (unfit for a companion reply) or be skipped. So the chain's intent is encoded as direct behavioral guidelines. The four-step vs single-step comparison is a Stage 7–9 ablation (anticipated by framework §6.2). Week-4 specifics: see `week4_mvp_notes.md §5`.
 
-**Decision (Week 4).** The **English mode is an uncalibrated baseline**, not a gold standard (framework §3.3.2). It represents the model's default American-style behavior and is the reference for the Equitability metric (§5.7). zh/de are deliberately calibrated; en intentionally is not.
+**Decision (Stage 4).** The **English mode is an uncalibrated baseline**, not a gold standard (framework §3.3.2). It represents the model's default American-style behavior and is the reference for the Equitability metric (§5.7). zh/de are deliberately calibrated; en intentionally is not.
 
 **Decision (2026-05-28).** Each prompt carries an **explicit response-language instruction** ("respond in Chinese/German/English regardless of the user's input language").
 
 **Why.** The zh/de prompts, written in their target language, already anchored output strongly; the English prompt (English being the model's neutral register) did not, so the English mode drifted into the user's input language. The explicit instruction makes all three modes language-consistent.
 
-**Nuance for Week 7.** Forcing English output supports the cross-language Equitability comparison (§5.7). But measuring the *within-language* calibration effect (Sub-RQ 2) needs a same-language uncalibrated baseline — a separate baseline to design in Week 7 (§5, pending #6).
+**Nuance for Stage 7.** Forcing English output supports the cross-language Equitability comparison (§5.7). But measuring the *within-language* calibration effect (Sub-RQ 2) needs a same-language uncalibrated baseline — a separate baseline to design in Stage 7 (§5, pending #6).
 
-*中文备注:v1 用单步准则 prompt(非四步链),因生成关 thinking;英语是未校准基线;每套 prompt 现都加了显式语言指令,修复英语串语言;Week 7 还要定"同语言基线"。*
+*中文备注:v1 用单步准则 prompt(非四步链),因生成关 thinking;英语是未校准基线;每套 prompt 现都加了显式语言指令,修复英语串语言;Stage 7 还要定"同语言基线"。*
 
 ---
 
 ## 7. Test Dataset Construction
 
-**Decision (Week 5, 2026-06).** The test set is **60 items = 20 scenarios (S01–S20) × 3 languages (zh/de/en)**.
+**Decision (Stage 5, 2026-06).** The test set is **60 items = 20 scenarios (S01–S20) × 3 languages (zh/de/en)**.
 
 **Native authorship — not LLM-generated, not translation.** All 60 user-turn texts are written by native speakers: **zh by Frida & Helena, de by Jens Linden, en by Rodney Kale**. An earlier draft of ~40 LLM-generated zh/de items was **discarded**.
 
@@ -177,7 +177,7 @@ The Week 2 `mvp.py` used a flat per-call schema (`provider / lang / user_input /
 
 ## 8. Human Annotation — Reliability Protocol & Results (resolves Pending #5)
 
-**Decision (Week 5, 2026-06).** Two fields (`emotional_intensity`, `cultural_sensitivity`) are annotated by **two human raters (Frida, Helena)** against a written guideline (`annotation_guidelines_v1_1.md`), validated by **inter-rater Cohen's Kappa**, and iterated until threshold.
+**Decision (Stage 5, 2026-06).** Two fields (`emotional_intensity`, `cultural_sensitivity`) are annotated by **two human raters (Frida, Helena)** against a written guideline (`annotation_guidelines_v1_1.md`), validated by **inter-rater Cohen's Kappa**, and iterated until threshold.
 
 **Field definitions (project constructs — framework defines neither scale).**
 - **`emotional_intensity` (1–5, per-text / language-level).** Rate the **underlying severity** conveyed, not surface tone, with evidence in-text. **Two-step method**: (1) surface reading; (2) weight-marker correction — understatement-contradiction (+1), withdrawal (floor 3), despair-generalization (→5), identity-negation (floor 4), adversarial-attack (→≥4). Serves framework §5.3 Generator-side diagnosis.
@@ -206,9 +206,9 @@ The Week 2 `mvp.py` used a flat per-call schema (`provider / lang / user_input /
 
 ---
 
-## 9. Evaluation Dimensions & Scoring Rubric (Week 6)
+## 9. Evaluation Dimensions & Scoring Rubric (Stage 6)
 
-**Decision (Week 6, 2026-06).** Model **responses** are scored on **7 dimensions** in a two-layer structure (framework §4.3), plus one second-order metric. Full rubric: `docs/evaluation_dimensions_v1.md`; machine-readable form: `src/eval/rubrics.py`.
+**Decision (Stage 6, 2026-06).** Model **responses** are scored on **7 dimensions** in a two-layer structure (framework §4.3), plus one second-order metric. Full rubric: `docs/evaluation_dimensions_v1.md`; machine-readable form: `src/eval/rubrics.py`.
 
 - **Universal layer (any culture):** D1 Empathy & Validation, D2 Non-minimization & Non-judgment, D3 Safety & Crisis Recognition. (= the five §4.3 common foundations, merged into 3.)
 - **Cultural-specific layer (scored against the item's target culture):** D4 Cultural Norm Fit (§3.0 four axes), D5 Intention Fit (§5.4), D6 Language Naturalness & Register.
@@ -229,10 +229,10 @@ Each dimension carries **1–5 anchors with observable markers** (not "good/medi
 
 **Decision — S19 is a culture-invariant control.** The AI-legitimacy-challenge scenario (S19) has identical tri-lingual ideal handling (acknowledge it's not human, name the tension, don't get defensive), empty `stressed_axes`. It tests only D7/M7; its D4 is N/A and its D4/D5 are excluded from cultural Equitability diffs.
 
-**Decision — Equitability computation.** Per-dimension cross-language gaps are reported **signed** (`en − zh`/`de`, preserving the "which way it leans" direction = the Sub-RQ1 finding); only the single composite index uses **mean(|gap|)** (signed terms would cancel). The **language-ability confounder** is removed via a **pooled ability baseline**: because D4 is N/A on the control items (S15/S16 have no axes and can't self-subtract), the baseline is pooled from the culture-free dimensions **D1/D2** on S15/S16 — `ability_baseline(model, lang)` — and subtracted from all cultural dimensions including D4. Both **raw and corrected** gaps are reported (sensitivity analysis). This is the aggregation-layer *partial* confounder control and is **complementary to**, not a replacement for, the §5.8 SAGE injection experiment (Weeks 7–9), which remains the primary mismatch-vs-ability discriminator.
+**Decision — Equitability computation.** Per-dimension cross-language gaps are reported **signed** (`en − zh`/`de`, preserving the "which way it leans" direction = the Sub-RQ1 finding); only the single composite index uses **mean(|gap|)** (signed terms would cancel). The **language-ability confounder** is removed via a **pooled ability baseline**: because D4 is N/A on the control items (S15/S16 have no axes and can't self-subtract), the baseline is pooled from the culture-free dimensions **D1/D2** on S15/S16 — `ability_baseline(model, lang)` — and subtracted from all cultural dimensions including D4. Both **raw and corrected** gaps are reported (sensitivity analysis). This is the aggregation-layer *partial* confounder control and is **complementary to**, not a replacement for, the §5.8 SAGE injection experiment (Stages 7–9), which remains the primary mismatch-vs-ability discriminator.
 
 **Decision — multi-judge & self-judging bias.** Three judges (GPT-5.4 / Claude-opus-4-6 / DeepSeek-v4-pro), median score, inter-judge agreement reported. Because the judges are also the generators, self-enhancement bias is handled by **reporting self-judgments and cross-judgments separately** (rather than leave-one-out, which would discard 1/3 of the scores).
 
 **Status.** Rubric is **v1**; it will be revised after the first Week-8 trial scoring based on inter-judge agreement (same iterate-on-reliability logic as §8).
 
-*中文备注:Week 6 评估维度定稿——响应分 7 维(3 普世 D1-D3 + 3 文化特异 D4-D6 + 1 互动 D7)+ 二阶 Equitability。文化维参数化(喂每条目标文化理想),英语按美式基线评。刻意不设"建议实用性"维。reference-free 且不喂 watch_mismatches(防 priming)。D5 意图词表 = IntentionESC 12 + Preserve-Face + Acknowledge-Negativity 共 14,剔除策略 token,17 条英语意图已归一。D3 危机触发语言特异:S20 三语都危机、S14 仅 zh 危机(德英原生文本更轻,有意不改 → M2 文化空缺发现项,跨语言 D3 不可比、单列)。S19 = culture-invariant 对照条。Equitability:逐维带符号、总指数取 mean|分差|;能力混淆项用 D1/D2 在对照条上池化基线扣除(D4 在对照条 N/A 无法自扣),报原始+校正两版,与 SAGE 注入互补。三裁判取中位数,裁判=生成模型 → 自评/互评分开报。rubric 是 v1,Week 8 首批试评后据裁判一致性迭代。*
+*中文备注:Stage 6 评估维度定稿——响应分 7 维(3 普世 D1-D3 + 3 文化特异 D4-D6 + 1 互动 D7)+ 二阶 Equitability。文化维参数化(喂每条目标文化理想),英语按美式基线评。刻意不设"建议实用性"维。reference-free 且不喂 watch_mismatches(防 priming)。D5 意图词表 = IntentionESC 12 + Preserve-Face + Acknowledge-Negativity 共 14,剔除策略 token,17 条英语意图已归一。D3 危机触发语言特异:S20 三语都危机、S14 仅 zh 危机(德英原生文本更轻,有意不改 → M2 文化空缺发现项,跨语言 D3 不可比、单列)。S19 = culture-invariant 对照条。Equitability:逐维带符号、总指数取 mean|分差|;能力混淆项用 D1/D2 在对照条上池化基线扣除(D4 在对照条 N/A 无法自扣),报原始+校正两版,与 SAGE 注入互补。三裁判取中位数,裁判=生成模型 → 自评/互评分开报。rubric 是 v1,Stage 8 首批试评后据裁判一致性迭代。*

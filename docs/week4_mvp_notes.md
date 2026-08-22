@@ -1,11 +1,11 @@
-# Week 4 MVP — 研究决策笔记
+# Stage 4 MVP — 研究决策笔记
 
 > 配套文档:`methodology_notes.md` · `prompt_engineering_basics.md`
 > 程序入口:`src/cli/empathy_cli.py`
 > 测试数据:`src/tests/test_inputs.py`
 > 输出位置:`results/mvp_run_<YYYYMMDD_HHMMSS>.json`
 
-本文档记录 Week 4 MVP 在 prompt、测试输入、输出格式上的关键设计决策,以便 Week 5+ 迭代时溯源。
+本文档记录 Stage 4 MVP 在 prompt、测试输入、输出格式上的关键设计决策,以便 Stage 5+ 迭代时溯源。
 
 ## 1. 三种文化模式的定位
 
@@ -29,7 +29,7 @@
 | T4 | 德 | **对抗性直接** | §4.2 direct adversarial | "Du klingst wie ein Roboter" → Sie/Du 礼貌层级是否保持 |
 | T5 | 英 | 温和倾诉 | §3.1.5 分手案例 | 跨模式对比:EN baseline 快速 reframe + 转介 vs ZH/DE 校准 |
 
-混合温和与对抗的理由(framework §4.2):**HEART(Iyer et al. 2026)证明失配在温和场景被表面共情掩盖,只有对抗性才能暴露**。所以即使是 Week 4 的 MVP 阶段,也必须包含至少 2 条对抗性测试,否则就把 prompt 效果"测假"了。
+混合温和与对抗的理由(framework §4.2):**HEART(Iyer et al. 2026)证明失配在温和场景被表面共情掩盖,只有对抗性才能暴露**。所以即使是 Stage 4 的 MVP 阶段,也必须包含至少 2 条对抗性测试,否则就把 prompt 效果"测假"了。
 
 ## 3. 输出 JSON 格式 —— Phase 2 评估管道可直接消费
 
@@ -45,33 +45,33 @@
 | `test_item` | 测试元数据:`id` / `lang` / `kind` / `anchor`(framework 段落引用)/ `note` |
 
 **为什么这么设计**:
-- `prompt_version` 让 Week 7+ 做 prompt 迭代时旧记录仍可溯源
+- `prompt_version` 让 Stage 7+ 做 prompt 迭代时旧记录仍可溯源
 - `test_item.anchor` 让评估时能追溯回 framework 的具体规范,不会失去理论根基
 - 单条 record 自包含(含所有元数据 + 输入 + 输出),不需要再 join 别的表
 
 ## 4. 关键代码决策
 
-- **Temperature 默认 0.7**,Week 7-9 做消融时经 `--temperature` 切换。
+- **Temperature 默认 0.7**,Stage 7-9 做消融时经 `--temperature` 切换。
 - **`max_tokens=600`**:比典型聊天长,但留出完整情感响应的空间(尤其是 zh 模式的多轮短回应风格)。
 - **API 失败容错**:单条 mode 出错只写 `error` 字段,batch 不会中断 —— 跑 5 × 3 = 15 次调用,任何一次失败都不影响其它结果。
 - **`call_model` 延迟导入 `anthropic`**:这样即使组员没装 SDK / 没设 API key,也能用 CLI 检查 prompt 内容。
-- **`run_one_input` 与 `main` 分离**:Week 5+ 写评估脚本时可以直接 `from src.cli.empathy_cli import run_one_input`,不必走 CLI。
+- **`run_one_input` 与 `main` 分离**:Stage 5+ 写评估脚本时可以直接 `from src.cli.empathy_cli import run_one_input`,不必走 CLI。
 - **每套 prompt 加显式语言指令**(2026-05-28):zh→中文 / de→德语 / en→英语,无论用户输入什么语言,修复英语模式跟随用户语言"串台"的问题。详见 `methodology_notes.md §6`。
 
-## 5. 单步 prompt vs 四步显式推理链(留待 Week 7-9)
+## 5. 单步 prompt vs 四步显式推理链(留待 Stage 7-9)
 
-v1 采用**单步"准则"形式**的 prompt,而非 framework §6.2 的显式四步推理链,因为生成阶段已关闭 thinking 模式(Week 2 决策)。
+v1 采用**单步"准则"形式**的 prompt,而非 framework §6.2 的显式四步推理链,因为生成阶段已关闭 thinking 模式(Stage 2 决策)。
 
-四步链 vs 单步的对比消融是 framework §6.2 已经预期的 Week 7-9 任务,届时需要:
+四步链 vs 单步的对比消融是 framework §6.2 已经预期的 Stage 7-9 任务,届时需要:
 - 写一个 v2 prompt(显式四步链)
 - 跑同一测试集对比
 - 把对比结果写进论文 Discussion
 
-## 6. 不在 Week 4 范围内的事
+## 6. 不在 Stage 4 范围内的事
 
 为避免范围蔓延,以下明确**留到后续 week**:
-- ❌ 评估逻辑(Sub-RQ 1 失配诊断、HEART 五维评分)→ Week 7+
-- ❌ SAGE 三级注入(Zero / Weak / Strong)的诊断范式 → Week 7-9
-- ❌ 60 条三语测试集设计 → Phase 1(Week 5-6)
-- ❌ 主流产品对比(GPT-4o / DeepSeek / Qwen)→ Week 5+
+- ❌ 评估逻辑(Sub-RQ 1 失配诊断、HEART 五维评分)→ Stage 7+
+- ❌ SAGE 三级注入(Zero / Weak / Strong)的诊断范式 → Stage 7-9
+- ❌ 60 条三语测试集设计 → Phase 1(Stage 5-6)
+- ❌ 主流产品对比(GPT-4o / DeepSeek / Qwen)→ Stage 5+
 - ❌ pytest 单元测试 → 需要时另开项目根 `tests/` 目录,不与 `src/tests/`(测试数据)冲突

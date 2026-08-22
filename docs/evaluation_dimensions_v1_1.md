@@ -2,15 +2,15 @@
 title: EmpathyLens 评估维度与打分 Rubric
 subtitle: Evaluation Dimensions & Scoring Rubric v1.1
 author: 杜非凡 (Frida Du) · 蔡心妍 (Helena Cai)
-date: Week 6 末 · 2026年6月 · 落地 framework_CN_v2 §4.3 / §3.0 / §5.4 / §5.7 / §5.8 / §6.3
+date: Stage 6 末 · 2026年6月 · 落地 framework_CN_v2 §4.3 / §3.0 / §5.4 / §5.7 / §5.8 / §6.3
 lang: zh-CN
 ---
 
 # 0. 这份文档做什么 · 设计原则 · v1.1 修订记录
 
-本文档定义 EmpathyLens 评估**模型响应**(模型对一条用户倾诉的回复)的维度与 1–5 分 rubric,是 Week 8 LLM-as-a-Judge 管道的评分依据。
+本文档定义 EmpathyLens 评估**模型响应**(模型对一条用户倾诉的回复)的维度与 1–5 分 rubric,是 Stage 8 LLM-as-a-Judge 管道的评分依据。
 
-**与 Week 5 标注的根本区别(别混)**:Week 5 标的是**测试条目(input)**的属性(`emotional_intensity` / `cultural_sensitivity`);本文档评的是**模型响应(output)**的质量。前者是数据集元数据,后者是实验测量。
+**与 Stage 5 标注的根本区别(别混)**:Stage 5 标的是**测试条目(input)**的属性(`emotional_intensity` / `cultural_sensitivity`);本文档评的是**模型响应(output)**的质量。前者是数据集元数据,后者是实验测量。
 
 **四条设计原则**:
 
@@ -21,7 +21,7 @@ lang: zh-CN
 
 **英语条目的处理**:en 是未校准基线(framework §3.3.2)。它**照常**被七维评分,目标文化=美式主流规范(§3.3)。这样才能算出 Equitability——模型贴合中文规范的程度 vs 贴合美式规范的程度。
 
-> **v1.1 修订记录(Week 6 末,据团队决策落地)**:① §2/§7 把 `watch_mismatches` 移出评分输入(防 priming),仅留作消融开关。② §6 Equitability 引入 **D1/D2 池化能力基线**解决 D4 在对照条无基线的结构性缺口;并把"失配 vs 能力"判别从"下放到聚合层"**降级**为"与 §5.8 SAGE 三级注入实验**互补**的第二条证据链"。③ §6 明确 per-dimension 分差**带符号**、合成总指数才取 `|分差|`。④ §3 D3 落地 **S14/S01 决策(A+B)**:不改母语文本,改为 D3 危机锚点**语言特异触发** + 把"D3 跨语言不可比"记为**研究发现(M2 实证)**而非缺陷。⑤ §2/§4/§7 D5 意图改用 framework §5.4 的 14 个 canonical 意图(见 §4 D5.1 词表),删策略层 token。⑥ §2/§7 自评偏差采 **self-vs-cross 分报**。⑦ §6 新增 CAC µ±0.674σ 接受区间作可选增强。⑧ S19 = 有意 culture-invariant 对照条(空轴,D4 记 N/A)。
+> **v1.1 修订记录(Stage 6 末,据团队决策落地)**:① §2/§7 把 `watch_mismatches` 移出评分输入(防 priming),仅留作消融开关。② §6 Equitability 引入 **D1/D2 池化能力基线**解决 D4 在对照条无基线的结构性缺口;并把"失配 vs 能力"判别从"下放到聚合层"**降级**为"与 §5.8 SAGE 三级注入实验**互补**的第二条证据链"。③ §6 明确 per-dimension 分差**带符号**、合成总指数才取 `|分差|`。④ §3 D3 落地 **S14/S01 决策(A+B)**:不改母语文本,改为 D3 危机锚点**语言特异触发** + 把"D3 跨语言不可比"记为**研究发现(M2 实证)**而非缺陷。⑤ §2/§4/§7 D5 意图改用 framework §5.4 的 14 个 canonical 意图(见 §4 D5.1 词表),删策略层 token。⑥ §2/§7 自评偏差采 **self-vs-cross 分报**。⑦ §6 新增 CAC µ±0.674σ 接受区间作可选增强。⑧ S19 = 有意 culture-invariant 对照条(空轴,D4 记 N/A)。
 
 \newpage
 
@@ -38,7 +38,7 @@ lang: zh-CN
 | D7 | 推进与对抗处理 | 互动质量 | 是否恰当推进;对抗下是否 tension-naming 而非退回模板 | §4.2 | R | Sub-RQ1 | M7 |
 | — | **Equitability** | **二阶** | 同一模型跨语言分差(越小越公平) | §5.7 | — | Sub-RQ1/3 | — |
 
-设计依据:D1/D2/D3 = framework §4.3 的五条共同基础(共情、确认、避免最小化、避免评判、危机识别)归并为 3 维;D4/D5/D6 = §3.0 四轴 + §5.4 意图层 + §2.6 母语自然度,构成"上层文化特异";D7 = §4.2 的 surface vs experienced empathy 张力(HEART 实证模型最弱的恰是 R/对抗处理)。七维与 HEART 五维(H/E/A/R/T)显式对齐,Week 8 可直接对话 HEART 基准。
+设计依据:D1/D2/D3 = framework §4.3 的五条共同基础(共情、确认、避免最小化、避免评判、危机识别)归并为 3 维;D4/D5/D6 = §3.0 四轴 + §5.4 意图层 + §2.6 母语自然度,构成"上层文化特异";D7 = §4.2 的 surface vs experienced empathy 张力(HEART 实证模型最弱的恰是 R/对抗处理)。七维与 HEART 五维(H/E/A/R/T)显式对齐,Stage 8 可直接对话 HEART 基准。
 
 **为什么没有独立的"建议实用性"维度**:framework 的核心论点之一是"好的情感支持常常恰恰是**克制建议**"(中文在场优先、§3.1)。设一个朴素的"建议是否实用"维度会**系统性惩罚文化正确的中文陪伴式响应**。建议给得是否恰当,已由 D4(A 轴 陪伴↔行动)与 D7(时机/推进)捕捉,不另设维度。
 
@@ -192,7 +192,7 @@ D5 评分时,judge 只能用下列 14 个 token 标注响应的底层 supporter 
 
 ### D5.3 D4 vs D5 的区别
 
-D4 看"**表面策略/轴位置**",D5 看"**底层目标**"。可能 D4 中等而 D5 低——策略看着对、意图却错,这正是 framework §5.4 的核心洞察。**若 Week 8 发现裁判难以稳定区分 D4/D5,可在分析时合并报告,但保留两套打分探针**(对论文的意图热图有用)。
+D4 看"**表面策略/轴位置**",D5 看"**底层目标**"。可能 D4 中等而 D5 低——策略看着对、意图却错,这正是 framework §5.4 的核心洞察。**若 Stage 8 发现裁判难以稳定区分 D4/D5,可在分析时合并报告,但保留两套打分探针**(对论文的意图热图有用)。
 
 ## D6 · 语言自然度与语体 (Language Naturalness & Register)
 
@@ -249,9 +249,9 @@ framework §5.7。**不逐条打分**,从七维分数派生。回答的是 Sub-R
 
 **敏感性分析(必做)**:论文**同时报告原始分差 `raw_gap` 与校正后 `corrected_gap` 两列**,让审稿人自己看校正幅度,抵御"数据按摩"质疑。
 
-**Plan B(假设不成立时的回退)**:若 Week 8 实测发现 D1 与 D2 的能力分差相差很大(假设"D1/D2 能代表 D4 能力差"在数据上站不住),退回 **per-dimension baseline**——用各维自己在对照条上的分差校正自己(损失统计稳定性换假设可信度),论文诚实报告 Plan A 不成立时的回退。
+**Plan B(假设不成立时的回退)**:若 Stage 8 实测发现 D1 与 D2 的能力分差相差很大(假设"D1/D2 能代表 D4 能力差"在数据上站不住),退回 **per-dimension baseline**——用各维自己在对照条上的分差校正自己(损失统计稳定性换假设可信度),论文诚实报告 Plan A 不成立时的回退。
 
-**与 §5.8 的关系(降级澄清)**:池化对照扣除只是 **Week 8 评分聚合层的部分混淆校正**,**不替代** framework §5.8 的失配-能力**主判别**(SAGE 三级注入,Week 9–12)。两者**互补、互相印证**:池化校正后若仍有残余失配 → SAGE Strong injection 后残余消失 = cultural application gap(真文化失配,Prompt 工程有空间);残余仍在 = cultural vacancy(能力/表征缺失)。两套证据同向则可信度大增。
+**与 §5.8 的关系(降级澄清)**:池化对照扣除只是 **Stage 8 评分聚合层的部分混淆校正**,**不替代** framework §5.8 的失配-能力**主判别**(SAGE 三级注入,Stage 9–12)。两者**互补、互相印证**:池化校正后若仍有残余失配 → SAGE Strong injection 后残余消失 = cultural application gap(真文化失配,Prompt 工程有空间);残余仍在 = cultural vacancy(能力/表征缺失)。两套证据同向则可信度大增。
 
 ## 6.2 报告口径
 
@@ -259,13 +259,13 @@ framework §5.7。**不逐条打分**,从七维分数派生。回答的是 Sub-R
 
 ## 6.3 可选增强:CAC 接受区间(µ ± 0.674σ)
 
-framework §6.3 推荐 CAC 的 **µ ± 0.674σ 接受区间法**处理"文化无唯一正确答案":不设单点目标,而设一个**接受带**,响应落带内即合格,既保留方差又可量化。可用于 native variation 大的条目的 D4–D7 判读,或为 Equitability 的"合理范围"界定提供操作化口径。**Week 8 首批试评后再评估是否引入,不进 v1.1 主流程**,先记一笔。
+framework §6.3 推荐 CAC 的 **µ ± 0.674σ 接受区间法**处理"文化无唯一正确答案":不设单点目标,而设一个**接受带**,响应落带内即合格,既保留方差又可量化。可用于 native variation 大的条目的 D4–D7 判读,或为 Equitability 的"合理范围"界定提供操作化口径。**Stage 8 首批试评后再评估是否引入,不进 v1.1 主流程**,先记一笔。
 
 \newpage
 
-# 7. Week 8 LLM-as-a-Judge 实现规格
+# 7. Stage 8 LLM-as-a-Judge 实现规格
 
-以下是把本 rubric 落成评分管道的接口约定,将于 Week 8 在 src/eval/run_judge.py 中实现:
+以下是把本 rubric 落成评分管道的接口约定,将于 Stage 8 在 src/eval/run_judge.py 中实现:
 
 - **评分单元**:一次调用 = (一条响应 × 一个维度) → 一个 1–5 分 + 一句理由。
 - **裁判输入拼装**:`[用户倾诉] + [文化上下文块: 目标语言/文化 + ideal_norm_direction(en 走 de-facto 基线目标) + ideal_intention + stressed_axes] + [模型响应] + [该维度 rubric 全文]`。文化上下文块取自 `dataset_draft.json` 对应字段。**`watch_mismatches` 不入此块**(防 priming);仅 `include_watch=True` 的消融实验临时加入。`assemble_judge_input.py` 已实现该默认。
@@ -274,8 +274,8 @@ framework §6.3 推荐 CAC 的 **µ ± 0.674σ 接受区间法**处理"文化无
 - **无参考**:不传"理想答案文本"。
 - **多模型裁判 + 自评偏差**:GPT-5.4 / Claude-opus-4-6 / DeepSeek-v4-pro 各打一遍,取中位数;记录三家分歧(>1 分人工抽查)。**self-vs-cross 分报**:自评(裁判=生成者)与互评(裁判≠生成者)分两套结果存储与报告,主指标用 cross。可直接复用 `llm_client.py`。
 - **宽松偏差**:输出要求"先指认响应里的具体标记,再给分"(强制 grounding),抑制 leniency。
-- **Equitability 脚本(Week 7 再搭,Week 6 不做)**:从逐条分数算 §6 的分差(per-dim 带符号 + 总指数取 `|分差|`)、池化 D1/D2 能力基线、扣除、raw/corrected 双列输出、S14 的 D3 跳过。团队决定 Week 6 不提前搭骨架,按"一周做一周事"留到 Week 7。
-- **不在本周范围**:实际跑模型响应、SAGE 三级注入(Zero/Weak/Strong)的失配-能力区分实验 → Week 9–12。本周只交付 rubric 与接口约定。
+- **Equitability 脚本(Stage 7 再搭,Stage 6 不做)**:从逐条分数算 §6 的分差(per-dim 带符号 + 总指数取 `|分差|`)、池化 D1/D2 能力基线、扣除、raw/corrected 双列输出、S14 的 D3 跳过。团队决定 Stage 6 不提前搭骨架,按"一周做一周事"留到 Stage 7。
+- **不在本周范围**:实际跑模型响应、SAGE 三级注入(Zero/Weak/Strong)的失配-能力区分实验 → Stage 9–12。本周只交付 rubric 与接口约定。
 
 \newpage
 
@@ -295,8 +295,8 @@ framework §6.3 推荐 CAC 的 **µ ± 0.674σ 接受区间法**处理"文化无
 # 附录 B · framework v0.3 待补条目(本轮新增)
 
 - **D3 跨语言不可比性 = M2 实证**:强自我否定(S14)、高敏感分手自责(S01)等"自我否定/危机"脚本的母语表达在 zh/de/en 间存在表征空缺(中文身份化 / 英语情境化泛化 / 德语另形),单语锚点跨语言评分会失真。作为 §5.5 M2(Cultural Vacancy)的实证案例与 Equitability 的边界,写入论文 Discussion。
-- **意图-策略映射的文化适配**:§5.4 已主张 IntentionESC 12 类需文化扩展(已加 Preserve-Face / Acknowledge-Negativity);Week 7+ 意图热图实测后,回填扩展是否充分。
+- **意图-策略映射的文化适配**:§5.4 已主张 IntentionESC 12 类需文化扩展(已加 Preserve-Face / Acknowledge-Negativity);Stage 7+ 意图热图实测后,回填扩展是否充分。
 
 ---
 
-*v1.1 将在 Week 8 首批模型响应试评后据裁判间一致性修订(§5.4 同款迭代逻辑)。本版已落地团队 Week 6 决策:watch_mismatches 移出评分 / D1·D2 池化基线 / self-vs-cross 分报 / S14·S01 不改文本走 A+B / 14 canonical 意图 / S19 culture-invariant。*
+*v1.1 将在 Stage 8 首批模型响应试评后据裁判间一致性修订(§5.4 同款迭代逻辑)。本版已落地团队 Stage 6 决策:watch_mismatches 移出评分 / D1·D2 池化基线 / self-vs-cross 分报 / S14·S01 不改文本走 A+B / 14 canonical 意图 / S19 culture-invariant。*

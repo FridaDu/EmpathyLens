@@ -1,12 +1,12 @@
 # EmpathyLens · Prompt 版本约定 (Prompt Versioning Convention)
-> Authors: Frida Du · Helena Cai · Week 7 · 2026-06
+> Authors: Frida Du · Helena Cai · Stage 7 · 2026-06
 > 一页定死:版本号、每版绑什么、技术侧接口 schema。
 
 ---
 
 ## 1. 为什么要这个约定
 
-Week 4 的 `cultural_prompts.py` 文件头自称 `PROMPT_VERSION = "v1"`,但它其实是未经评估的 pilot。一旦 Week 8 开始正式评估、Week 9 数据驱动迭代,如果版本号含糊,"这张分数是哪版 prompt 跑的"就会变成一笔糊涂账,直接污染论文的可复现性。本约定把版本号从本周立住,**每一张实验分数都能回溯到唯一一版 prompt 文本 + 一份设计说明**。
+Stage 4 的 `cultural_prompts.py` 文件头自称 `PROMPT_VERSION = "v1"`,但它其实是未经评估的 pilot。一旦 Stage 8 开始正式评估、Stage 9 数据驱动迭代,如果版本号含糊,"这张分数是哪版 prompt 跑的"就会变成一笔糊涂账,直接污染论文的可复现性。本约定把版本号从本周立住,**每一张实验分数都能回溯到唯一一版 prompt 文本 + 一份设计说明**。
 
 ---
 
@@ -14,11 +14,11 @@ Week 4 的 `cultural_prompts.py` 文件头自称 `PROMPT_VERSION = "v1"`,但它�
 
 | 版本 | 时点 | 含义 | 状态 |
 |---|---|---|---|
-| `v0.1`(及 `v0.x`) | Week 4 | 非正式 pilot。当前 `cultural_prompts.py` 的三套(zh 深度 / de 初稿 / en baseline)。**未经七维评估**,仅用于跑通管道。 | 归档,不再评估 |
-| `v1` | **Week 7(本周)** | **首个正式评估版**。zh/de 用 Week 6 七维框架 + §3.0 四轴 + §5.4 意图簇 + §5.5 M码反向规约,深化为 calibrated;en 保持 §3.3.2 未校准基线(只做格式整理)。 | **本周锁定**(de 待母语审校前记 `de_v1-draft`) |
-| `en+geo` | **Week 7(本周,团队定加)** | framework §6.2 要求的**强基线**:英文 prompt + 国家情境标签(如 "You live in Germany")。回应 CuLEmo Finding 3。prompt 模板见 `prompt_design_v1.md §4`。 | **本周锁定** |
-| `v2` | Week 9 | 据 Week 8 评估数据迭代。 | 待产 |
-| `v2+rag` | Week 10 | 在 v2 基础上挂轻量 RAG(检索增强)。 | 待产 |
+| `v0.1`(及 `v0.x`) | Stage 4 | 非正式 pilot。当前 `cultural_prompts.py` 的三套(zh 深度 / de 初稿 / en baseline)。**未经七维评估**,仅用于跑通管道。 | 归档,不再评估 |
+| `v1` | **Stage 7(本周)** | **首个正式评估版**。zh/de 用 Stage 6 七维框架 + §3.0 四轴 + §5.4 意图簇 + §5.5 M码反向规约,深化为 calibrated;en 保持 §3.3.2 未校准基线(只做格式整理)。 | **本周锁定**(de 待母语审校前记 `de_v1-draft`) |
+| `en+geo` | **Stage 7(本周,团队定加)** | framework §6.2 要求的**强基线**:英文 prompt + 国家情境标签(如 "You live in Germany")。回应 CuLEmo Finding 3。prompt 模板见 `prompt_design_v1.md §4`。 | **本周锁定** |
+| `v2` | Stage 9 | 据 Stage 8 评估数据迭代。 | 待产 |
+| `v2+rag` | Stage 10 | 在 v2 基础上挂轻量 RAG(检索增强)。 | 待产 |
 
 **写法规范**:版本字符串恒为短横线无空格的 `v0.1` / `v1` / `v2` / `v2+rag`。en 即使不深化也随大版本号走(en 的 `v1` = "格式与 zh/de 平齐、但有意未校准"的基线版),保证三语同版号可比。
 
@@ -46,8 +46,8 @@ Week 4 的 `cultural_prompts.py` 文件头自称 `PROMPT_VERSION = "v1"`,但它�
 
 ## 5. 本周边界(版本约定层面)
 
-v1 锁定 = "首个可被七维裁判正式打分的版本"。本周**只**产出 v1 的文本 + 设计说明 + 10 条 sanity-check;**不**做 v2 的迭代(那要等 Week 8 评估数据)、**不**挂 RAG(v2+rag 是 Week 10)。sanity-check 只验"prompt 没崩 / 格式对 / 语言一致",不是评估打分。
+v1 锁定 = "首个可被七维裁判正式打分的版本"。本周**只**产出 v1 的文本 + 设计说明 + 10 条 sanity-check;**不**做 v2 的迭代(那要等 Stage 8 评估数据)、**不**挂 RAG(v2+rag 是 Stage 10)。sanity-check 只验"prompt 没崩 / 格式对 / 语言一致",不是评估打分。
 
 ---
 
-*版本约定 v1。拍板后同步技术窗口即可开工目录重构。下次修订:Week 9 出 v2 时追加一行 v2 定义 + 迭代依据。*
+*版本约定 v1。拍板后同步技术窗口即可开工目录重构。下次修订:Stage 9 出 v2 时追加一行 v2 定义 + 迭代依据。*

@@ -1,9 +1,9 @@
-"""EmpathyLens — Week 7 sanity-check batch runner (generation only, NO scoring).
+"""EmpathyLens — Stage 7 sanity-check batch runner (generation only, NO scoring).
 对 week7_sanity_check.md §1 选定的 10 个场景 × 三语 v1 + 10 条 en_geo = 40 条,跑一次生成,存
 results/week7_sanity_check_v1.json,供作者逐条粗读(语言一致/格式/明显违背)。
-评分是 Week 8+ 的事 —— 本脚本不调 judge、不打分。
+评分是 Stage 8+ 的事 —— 本脚本不调 judge、不打分。
 
-Week 9 变更（两处，均为响应团队"Claude 开发者账号被封"的现实约束）：
+Stage 9 变更（两处，均为响应团队"Claude 开发者账号被封"的现实约束）：
   ① 生成字段统一为 "gen_model"（原来是 "model"，见 JUDGE_INPUT_CONTRACT.md §2）。
   ② 生成调用从"写死只认 Anthropic 的 src.cli.empathy_cli.call_model"改成
      "按 --model 名前缀路由到任意一家的 src.llm_client.call_model_with_usage"。
@@ -50,7 +50,7 @@ EN_GEO_SOURCE = {
 def _gen(system_prompt, user_text, model, temperature, dry_run):
     """跑一次生成,返回 (response_text, 元数据 dict)。dry_run 时不调 API。
 
-    元数据统一用 "gen_model" 作为模型字段名（Week 9 统一命名）。
+    元数据统一用 "gen_model" 作为模型字段名（Stage 9 统一命名）。
     生成走 src.llm_client.call_model_with_usage —— 按 model 名前缀（claude/gpt/deepseek）
     路由到对应厂商，不再写死只认 Anthropic，Claude 账号被封时可以传
     --model deepseek-v4-pro 完全绕开它。
@@ -99,7 +99,7 @@ def build_units(include_geo=True):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Week 7 sanity-check runner (generation only).")
+    ap = argparse.ArgumentParser(description="Stage 7 sanity-check runner (generation only).")
     ap.add_argument("--model", default=DEFAULT_MODEL,
                     help=f"生成模型，按前缀路由到对应厂商(claude/gpt/deepseek开头)。默认 {DEFAULT_MODEL}；"
                          f"Claude 账号被封期间可传 deepseek-v4-pro 绕开它。")

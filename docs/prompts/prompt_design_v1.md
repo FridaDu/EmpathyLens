@@ -1,6 +1,6 @@
 # EmpathyLens · 文化模式 Prompt v1 · 设计说明 (合并版)
 > 四条评估条件:zh_v1 / de_v1 / en_v1(未校准基线)/ en+geo(国家标签强基线)
-> Authors: Frida Du · Helena Cai · Week 7–8 · zh 主导 Frida Du(L1 中文)/ de 主导 Frida(非母语,经匿名德语母语审校者审校锁定)/ en 主导 Helena Cai
+> Authors: Frida Du · Helena Cai · Stage 7–8 · zh 主导 Frida Du(L1 中文)/ de 主导 Frida(非母语,经匿名德语母语审校者审校锁定)/ en 主导 Helena Cai
 > 落地 framework_CN_v2 §3.1 / §3.2 / §3.3 / §3.0 / §5.4 / §5.5 / §6.2 / §6.4 + evaluation_dimensions_v1.1
 > 配套:`prompt_versioning_convention.md`(版本约定)、`week7_sanity_check.md`(抽样+测试记录表)、`CHANGELOG.md`(三套 v1.0.1–.3 母语审校记录)
 > 本文件含四套 prompt 的**权威文本(code block)+ 逐条设计依据 + 七维对齐表 + 局限**。下方 code block 的四套 prompt 已内嵌为 src/prompts/registry.py 的常量(_ZH_V1 / _DE_V1 / _EN_V1 / _EN_GEO_V1),代码为权威;本文件与 registry 逐字一致(v1 锁定后已同步)。
@@ -9,11 +9,11 @@
 
 # 0. 总览与设计总原则
 
-Week 7 产出 = Week 8 评估管道要打分的"被评对象"。zh / de 用 Week 6 七维框架 + §3.0 四轴 + §5.4 意图簇 + §5.5 M 码反向规约,深化为 **calibrated v1**;en **故意保持未校准基线**(§3.3.2),作 Equitability 对照。三套统一用 Week 4 的五块结构:角色定义 / 行为规范 / 边界约束 / 输出格式 / 异常处理。三套均经母语者审校后锁定(zh 自审、de 由匿名德语母语审校者、en 由美式母语者,见 `CHANGELOG.md`)。
+Stage 7 产出 = Stage 8 评估管道要打分的"被评对象"。zh / de 用 Stage 6 七维框架 + §3.0 四轴 + §5.4 意图簇 + §5.5 M 码反向规约,深化为 **calibrated v1**;en **故意保持未校准基线**(§3.3.2),作 Equitability 对照。三套统一用 Stage 4 的五块结构:角色定义 / 行为规范 / 边界约束 / 输出格式 / 异常处理。三套均经母语者审校后锁定(zh 自审、de 由匿名德语母语审校者、en 由美式母语者,见 `CHANGELOG.md`)。
 
 三条贯穿全文、来自 framework 的总原则:
 
-1. **单步形式是消融的一条臂,不是定论(§6.2)**。framework §6.2 给的通用骨架是"四步推理链"(情感状态分析→意图推断→策略选择→响应生成),但同节明确警示(IntentionESC Finding 2):链太长会让链尾"响应生成"学习信号衰减,**Week 7–9 必须对比 完整四步链 vs 两步链 vs 单步 prompt,不能假设越精细越好**。v1 采用**单步准则**形式(因生成阶段 thinking 全关,Week 2 决策),它是这个消融的 single-step 臂。四步/两步臂留待 Week 9。
+1. **单步形式是消融的一条臂,不是定论(§6.2)**。framework §6.2 给的通用骨架是"四步推理链"(情感状态分析→意图推断→策略选择→响应生成),但同节明确警示(IntentionESC Finding 2):链太长会让链尾"响应生成"学习信号衰减,**Stage 7–9 必须对比 完整四步链 vs 两步链 vs 单步 prompt,不能假设越精细越好**。v1 采用**单步准则**形式(因生成阶段 thinking 全关,Stage 2 决策),它是这个消融的 single-step 臂。四步/两步臂留待 Stage 9。
 2. **每套都必须含跨文化共同基础(§6.2 / §4.3)**:共情、确认、避免最小化、避免评判、危机识别——不能因文化特异而牺牲。三套的"异常处理/共同底线"块即此。
 3. **每种语言都要母语者把关(§6.4)**:framework 引 HoMemeTown 韩语版"语法对但语用不对"的教训,要求每语文案分别请母语者审。落到三套 prompt:zh 由 Frida + Helena(母语)自审、**de 由匿名德语母语审校者全权审校**、en 由美式英语母语者审校(§3.3.2 警告"英语≠美国白人中产英语")。三套均已审校通过并锁定。
 
@@ -80,7 +80,7 @@ Week 7 产出 = Week 8 评估管道要打分的"被评对象"。zh / de 用 Week
 
 ## 1.5 局限
 
-- **有意去掉 §3.1.1 规范五"自我披露"**:framework 把"讲自己/第三方相似经历"列为中文共情工具,但 AI 自称亲身经历(如 v0.x 的"我也有过类似的时候")是**虚构不存在的经验**,与诚实/安全冲突。v1 选择不让 AI 假装亲历,仅在异常处理外保留"第三方故事/泛化共情"的可能;这是对 framework 的**有意偏离**,记入 Limitations,Week 8 看是否影响 D1 再议。
+- **有意去掉 §3.1.1 规范五"自我披露"**:framework 把"讲自己/第三方相似经历"列为中文共情工具,但 AI 自称亲身经历(如 v0.x 的"我也有过类似的时候")是**虚构不存在的经验**,与诚实/安全冲突。v1 选择不让 AI 假装亲历,仅在异常处理外保留"第三方故事/泛化共情"的可能;这是对 framework 的**有意偏离**,记入 Limitations,Stage 8 看是否影响 D1 再议。
 - 单步形式(见 §0 原则 1);Preserve-Face 抽象、可操作性待 sanity 验;危机资源单一(仅北京热线),非大陆中文用户覆盖记 Limitations;规范密度 vs 自然度张力留待 v2 据数据压缩。
 
 ---
@@ -186,14 +186,14 @@ v1 把 v0.x 的连续散文拆成与 zh/de 平齐的块结构,**保证三语唯�
 
 ## 3.4 局限
 
-- **抵住"修好 en"的冲动**:Week 8 见 en 在跨文化条"显得不够体贴"时会想校准它——必须抵住,改它即毁对照。写进论文 baseline 章节。
+- **抵住"修好 en"的冲动**:Stage 8 见 en 在跨文化条"显得不够体贴"时会想校准它——必须抵住,改它即毁对照。写进论文 baseline 章节。
 - **母语审校的 Discussion 素材(§3.3.2 印证)**:美式母语者指出 `unconditional positive regard` / `positive reframing` 是 counseling 行话、普通美国人未必使用——印证 §3.3.2"美式支持语域本身被治疗话术殖民"。v1.0.3 已去这两处行话但保留招牌 app 口语;这个观察写进论文 Discussion。
 - **内部异质性(§3.3.2)**:"英语文化"≠"美国白人中产文化"——英国更含蓄、澳洲更直接、印度英语关系网重要性近中文、AAVE 受 lament 传统、拉丁裔受 simpatía 影响。v1 取 §3.3 描述的典型美式画像作单一基线,代表性边界在 Discussion 坦承。
 - 资源单一(988,美国);en 危机识别的跨语言可比性受 evaluation_dimensions_v1.1 §3 的 M2 限制。
 
 ---
 
-# 4. 强基线:英文 + 国家标签 (en+geo)(framework §6.2,Week 7 加)
+# 4. 强基线:英文 + 国家标签 (en+geo)(framework §6.2,Stage 7 加)
 
 ## 4.1 为什么要它
 
@@ -242,15 +242,15 @@ You are a warm, empathetic companion. Respond the way mainstream English-languag
 
 > 与纯 en 基线的唯一差别 = 那条 "lives in {COUNTRY}…" 地理语境线(+ 本地化危机资源)。其余文本与 en_v1 完全一致(含 v1.0.3 措辞),确保"标签 vs 无标签"是干净的单一自变量。
 
-## 4.4 实验设计待技术/Week 8 确认(本周不锁)
+## 4.4 实验设计待技术/Stage 8 确认(本周不锁)
 
-en+geo 的 run-matrix 细节属 Week 8 评估管道的范畴,本文档只交付 prompt + 角色说明:用哪版输入文本(母语原文 vs 英译)、对哪些场景跑、是否所有三语场景都跑。**建议 sanity 阶段按"母语原文输入 + 国别标签匹配场景文化 + 英文响应"先跑一遍看不崩**(见 `week7_sanity_check.md`)。
+en+geo 的 run-matrix 细节属 Stage 8 评估管道的范畴,本文档只交付 prompt + 角色说明:用哪版输入文本(母语原文 vs 英译)、对哪些场景跑、是否所有三语场景都跑。**建议 sanity 阶段按"母语原文输入 + 国别标签匹配场景文化 + 英文响应"先跑一遍看不崩**(见 `week7_sanity_check.md`)。
 
 ## 4.5 局限
 
 - en+geo 在 en 场景上 ≈ 纯 en 基线(标签=US),信息增量小,可仅作对称性保留。
 - 国家标签是**粗粒度**(国≠文化,§3.3.2 内部异质性同样适用:英国/澳洲/印度英语等)。这是 CuLEmo 式标签法本身的局限,记 Discussion。
-- en+geo 七维评分时**目标文化 = 该国别对应文化**(zh 场景的 en+geo 按中文理想评,看它靠标签贴到几分)——这点 Week 8 评估配置时要对 judge 讲清。
+- en+geo 七维评分时**目标文化 = 该国别对应文化**(zh 场景的 en+geo 按中文理想评,看它靠标签贴到几分)——这点 Stage 8 评估配置时要对 judge 讲清。
 
 ---
 
@@ -270,14 +270,14 @@ en+geo 的 run-matrix 细节属 Week 8 评估管道的范畴,本文档只交付 
 
 **已决策**:
 
-1. **【§6.2 强基线】"英文 + 国家标签" en+geo —— 团队定:Week 7 就加(已落于 §4)**。framework §6.2 要求它作 strong baseline 回应 CuLEmo Finding 3。本周作为第四套评估条件交付,prompt 模板 + 说明见 §4;run-matrix 细节留 Week 8 由技术/eval 窗口确认。
+1. **【§6.2 强基线】"英文 + 国家标签" en+geo —— 团队定:Stage 7 就加(已落于 §4)**。framework §6.2 要求它作 strong baseline 回应 CuLEmo Finding 3。本周作为第四套评估条件交付,prompt 模板 + 说明见 §4;run-matrix 细节留 Stage 8 由技术/eval 窗口确认。
 
 **待团队拍板(一项)**:
 
-2. **【§6.2 消融路线】四步链 vs 两步 vs 单步**。v1 是单步臂。framework 要求 Week 7–9 对比多步形式;但因生成阶段 thinking 全关(Week 2),显式多步链需另设(如多次调用或链写进响应),属技术设计。**建议 Week 9 据 v1 评估数据再做四步/两步臂,本周只交付单步 v1**——若同意则无需本周动作。
+2. **【§6.2 消融路线】四步链 vs 两步 vs 单步**。v1 是单步臂。framework 要求 Stage 7–9 对比多步形式;但因生成阶段 thinking 全关(Stage 2),显式多步链需另设(如多次调用或链写进响应),属技术设计。**建议 Stage 9 据 v1 评估数据再做四步/两步臂,本周只交付单步 v1**——若同意则无需本周动作。
 
 **母语审校状态(§6.4,均已完成)**:zh ✅(Frida + Helena 自审,v1.0.1)/ de ✅(匿名德语母语审校者审校,v1.0.2,`de_v1-draft`→`de_v1`)/ en ✅(美式英语母语者审校,v1.0.3)。
 
 ---
 
-*v1 设计说明合并版。四套 prompt 已母语审校并锁定(见 CHANGELOG v1.0.1–.3),与 registry 逐字一致。三套将在 Week 8 首批响应试评后据裁判间一致性 + sanity 结果迭代为 v2。*
+*v1 设计说明合并版。四套 prompt 已母语审校并锁定(见 CHANGELOG v1.0.1–.3),与 registry 逐字一致。三套将在 Stage 8 首批响应试评后据裁判间一致性 + sanity 结果迭代为 v2。*

@@ -1,7 +1,7 @@
 # Prompt Engineering Basics — EmpathyLens Learning Note
 # Prompt 工程基础 — EmpathyLens 学习笔记
 
-Author: Frida Du · Week 4 · 2026-05
+Author: Frida Du · Stage 4 · 2026-05
 
 本笔记记录 Prompt Engineering 的核心技术,并说明每一项在 EmpathyLens
 的三套文化模式 System Prompt 中**用还是不用、为什么**。
@@ -12,8 +12,8 @@ whether and why we use it in EmpathyLens's three cultural-mode System Prompts.
 
 ## 0. 三种消息角色 | The Three Message Roles
 
-调用 LLM 时,对话由三种 role 组成(你在 Week 2 的 mvp.py 已经见过):
-An LLM conversation is composed of three message roles (seen in Week 2's mvp.py):
+调用 LLM 时,对话由三种 role 组成(你在 Stage 2 的 mvp.py 已经见过):
+An LLM conversation is composed of three message roles (seen in Stage 2's mvp.py):
 
 - **system**:给模型设定身份、任务、规则的"幕后指令"。用户看不到。
   Behind-the-scenes instruction setting the model's identity, task, and rules. Invisible to the user.
@@ -72,12 +72,12 @@ What it is: Embed 1-N "ideal input → ideal output" examples in the prompt; the
 **为什么有效**:例子比抽象描述更能锚定模型的输出风格。
 Why it works: Examples anchor output style more concretely than abstract description.
 
-**我们怎么用**:⏸️ v1 暂不用,Week 7-9 再加。
-How we use it: ⏸️ Not in v1; added in Week 7-9.
+**我们怎么用**:⏸️ v1 暂不用,Stage 7-9 再加。
+How we use it: ⏸️ Not in v1; added in Stage 7-9.
 原因:加例子会让 prompt 变长、且把模型"锁定"在特定例子上。framework §3.1.5
-有现成的三语理想回应范例,留作 Week 7-9 的实验变量(加 few-shot 是否提升效果)。
+有现成的三语理想回应范例,留作 Stage 7-9 的实验变量(加 few-shot 是否提升效果)。
 Reason: examples lengthen the prompt and over-anchor the model. Framework §3.1.5
-provides ready-made trilingual ideal-response anchors, reserved as a Week 7-9 variable.
+provides ready-made trilingual ideal-response anchors, reserved as a Stage 7-9 variable.
 
 ---
 
@@ -93,14 +93,14 @@ four-step chain is a CoT design.
 
 **我们怎么用**:⏸️ v1 不用显式 CoT。
 How we use it: ⏸️ No explicit CoT in v1.
-原因(重要):我们 Week 2 已关闭 thinking 模式(模拟主流产品的实时部署)。
+原因(重要):我们 Stage 2 已关闭 thinking 模式(模拟主流产品的实时部署)。
 thinking 关闭时模型没有"内心独白"空间,显式 CoT 要么把推理全打印出来
 (不符合陪伴回应),要么被跳过。所以 v1 把四步链的意图**编码成行为准则**,
-而非显式推理步骤。"四步链 vs 单步" 的对比正是 framework §6.2 预设的 Week 7-9 实验。
-Reason: We disabled thinking mode in Week 2 (to mirror real product deployment). With
+而非显式推理步骤。"四步链 vs 单步" 的对比正是 framework §6.2 预设的 Stage 7-9 实验。
+Reason: We disabled thinking mode in Stage 2 (to mirror real product deployment). With
 thinking off, the model has no hidden-reasoning space, so explicit CoT either prints all
 reasoning (unfit for a companion reply) or gets skipped. So v1 encodes the chain's intent
-as behavioral guidelines. The "chain vs single-step" comparison is exactly the Week 7-9
+as behavioral guidelines. The "chain vs single-step" comparison is exactly the Stage 7-9
 experiment framework §6.2 anticipates.
 
 ---
@@ -125,5 +125,5 @@ How we use it: ✅ All three prompts use 【】 to mark norm modules and the avo
 | 角色设定 Role | ✅ 是 Yes | 三套都用 |
 | 清晰指令 Clear instructions | ✅ 是 Yes | 文化校准核心 |
 | 结构/分隔符 Structure | ✅ 是 Yes | 【】分段 |
-| Few-shot | ⏸️ 否 No | Week 7-9 实验变量 |
-| 显式 CoT | ⏸️ 否 No | 与 thinking 关闭冲突;Week 7-9 对比 |
+| Few-shot | ⏸️ 否 No | Stage 7-9 实验变量 |
+| 显式 CoT | ⏸️ 否 No | 与 thinking 关闭冲突;Stage 7-9 对比 |

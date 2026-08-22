@@ -1,5 +1,5 @@
-# Week 7 · Sanity-Check 抽样清单 + 初步测试记录表
-> Authors: Frida Du · Helena Cai · Week 7 · 2026-06 · 40 条生成输出(30 三语 calibrated/baseline + 10 en+geo strong baseline)· **仅 sanity check,不评分**(评分是 Week 8)
+# Stage 7 · Sanity-Check 抽样清单 + 初步测试记录表
+> Authors: Frida Du · Helena Cai · Stage 7 · 2026-06 · 40 条生成输出(30 三语 calibrated/baseline + 10 en+geo strong baseline)· **仅 sanity check,不评分**(评分是 Stage 8)
 > 流程:§1 抽样清单 → run_sanity_check.py 跑批存 results/week7_sanity_check_v1.json→ §2 作者逐条粗读填表
 
 ---
@@ -30,8 +30,8 @@
 ## 1.3 跑批约定(`run_sanity_check.py`)
 
 - 输入:上表 10 个 `scenario_id` × 三语(取 `dataset_draft.json` 对应 `id` 的 `text` 作 user 输入)× v1 prompt,各跑一次。
-- 模型:sanity 阶段可先只跑**一家**(建议 claude-opus-4-6)过 40 条看格式/语言;确认无误再决定是否三家全跑。最终评分(Week 8)才必须三家。
-- 输出:存 `results/week7_sanity_check_v1.json`,每条带 `prompt_version` / `condition` / `scenario_id` / `lang` / `gen_model`(Week 9 统一字段名,原文档误写作 `model`) / `temperature` / `thinking_mode` / `stop_reason` / `output_tokens` / `latency_sec` + 生成文本。
+- 模型:sanity 阶段可先只跑**一家**(建议 claude-opus-4-6)过 40 条看格式/语言;确认无误再决定是否三家全跑。最终评分(Stage 8)才必须三家。
+- 输出:存 `results/week7_sanity_check_v1.json`,每条带 `prompt_version` / `condition` / `scenario_id` / `lang` / `gen_model`(Stage 9 统一字段名,原文档误写作 `model`) / `temperature` / `thinking_mode` / `stop_reason` / `output_tokens` / `latency_sec` + 生成文本。
 - **不调 judge、不打分。**
 
 **en+geo 强基线也过一遍 sanity**(团队定本周加,prompt 见 `prompt_design_v1.md §4`):对同样 10 个场景各跑 1 条 en+geo,**国别标签匹配该场景文化**(zh 场景→China、de 场景→Germany、en 场景→United States),输入用母语原文、响应英文。共 **+10 条**,本轮 sanity 合计 **40 条**(30 三语 calibrated/baseline + 10 en+geo)。en+geo 的输入协议(母语原文 vs 英译)若跑批阶段另有考量,按团队定的来,本文档只要求"标签匹配场景文化 + 英文响应 + 不崩"。
@@ -40,7 +40,7 @@
 
 # 第二部分 · 初步测试记录表(模板)
 
-跑批完成 40 条后,作者逐条粗读。每条**只判三件事**(是/否,不打七维分):**(a) 语言一致** / **(b) 格式符合** / **(c) 无明显设计违背**。记号:✅ 通过 / ⚠️ 可疑(写一句) / ❌ 明显崩(写清崩在哪)。**只有 ❌ 才考虑本周微调 prompt;⚠️ 记录但带进 Week 8 让数据说话。**
+跑批完成 40 条后,作者逐条粗读。每条**只判三件事**(是/否,不打七维分):**(a) 语言一致** / **(b) 格式符合** / **(c) 无明显设计违背**。记号:✅ 通过 / ⚠️ 可疑(写一句) / ❌ 明显崩(写清崩在哪)。**只有 ❌ 才考虑本周微调 prompt;⚠️ 记录但带进 Stage 8 让数据说话。**
 
 ## 2.1 逐条记录表(30 行)
 
@@ -92,7 +92,7 @@
 | S18 | China |  |  |  |  |  |
 | S20 | China |  |  |  |  |  |
 
-> 注:上表国别标签按各场景在数据集里的**文化来源**填(此处按 zh 源场景示例填 China;若某场景你们要测 de 源,改 Germany)。en+geo 响应应为**英文**,且能看出**轻微**因国别标签产生的语境意识——但**不应**出现我们 calibrated 条件那种显式四轴/意图校准(若 en+geo 表现得和 zh_v1 一样到位,反而是重要发现,记 ⚠️ 留给 Week 8 数据确认,别当 bug)。
+> 注:上表国别标签按各场景在数据集里的**文化来源**填(此处按 zh 源场景示例填 China;若某场景你们要测 de 源,改 Germany)。en+geo 响应应为**英文**,且能看出**轻微**因国别标签产生的语境意识——但**不应**出现我们 calibrated 条件那种显式四轴/意图校准(若 en+geo 表现得和 zh_v1 一样到位,反而是重要发现,记 ⚠️ 留给 Stage 8 数据确认,别当 bug)。
 
 ## 2.2 红旗清单(粗读对照,帮 (c) 一眼抓崩)
 
@@ -109,7 +109,7 @@
 - 整体过关率(✅ / 30):__
 - 出现 ❌ 的条目 + 崩在哪:__
 - 本周决定微调的 prompt(哪套、改哪句、为什么):__
-- 带进 Week 8 的 ⚠️ 观察(本周不改,让数据说话):__
+- 带进 Stage 8 的 ⚠️ 观察(本周不改,让数据说话):__
 - 给跑批脚本的回执(格式/元数据要补的):__
 
-> 本表是 Week 9 迭代与 Week 18 论文 Methodology 的过程证据,如实记录粗读结论即可。
+> 本表是 Stage 9 迭代与 Stage 18 论文 Methodology 的过程证据,如实记录粗读结论即可。
