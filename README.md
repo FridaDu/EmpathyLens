@@ -6,7 +6,7 @@
 
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Status](https://img.shields.io/badge/status-Phase%202%20(Week%209%2F22)-orange)]()
+[![Status](https://img.shields.io/badge/status-Phase%202%20(Stage%209%2F22)-orange)]()
 [![Providers](https://img.shields.io/badge/LLM%20providers-OpenAI%20%7C%20Anthropic%20%7C%20DeepSeek-4B32C3)]()
 
 > How do you tell whether an LLM handles a German user's grief the way German users actually
@@ -15,7 +15,7 @@
 > a reusable, cost-controlled evaluation toolkit.
 
 **Authors:** Frida Du (Feifan Du) · Helena Cai (Xinyan Cai) — LMU Munich, B.Sc. Computational Linguistics
-**Timeline:** 2026-04 → 2026-09 · currently Phase 2, Week 9 of 22
+**Progress:** Phase 2 · Stage 9 of 22
 
 ---
 
@@ -80,8 +80,7 @@ never ingested this condition at all.
 
 ### 2. Rebuilding the pipeline after a budget failure
 
-The first full run issued 300 generation calls plus **6,165 judge calls** in about a week, and
-exhausted the API budget faster than the pipeline's own estimator predicted. Root causes, in order
+The first full run issued 300 generation calls plus **6,165 judge calls**, and exhausted the API budget faster than the pipeline's own estimator predicted. Root causes, in order
 of contribution:
 
 1. **Structural over-calling** — the judge was invoked once per *(response × dimension × judge)*: 7 × 3 = 21 calls per response.
@@ -109,7 +108,7 @@ claims to deliver. An evaluation framework nobody can afford to run twice isn't 
 
 ⚠️ **Read as directional, not conclusive.** Single-sample generation (N=1), no significance testing
 yet, one prompt version. The locked full evaluation that these claims will stand or fall on is
-scheduled for Week 13.
+scheduled for Stage 13.
 
 - **D7 (progression & tension-handling) is the weakest dimension** across all conditions
   (4.24 vs 4.56–4.93 for the other six).
@@ -126,7 +125,7 @@ scheduled for Week 13.
 ## Tech stack
 
 **Python 3.12** · `openai` · `anthropic` · `pandas` · `matplotlib` · `python-dotenv`
-Planned: `chromadb` (retrieval), `streamlit` (demo app)
+Planned: `chromadb` (retrieval), `streamlit` (demo app), interactive BI dashboard (Tableau)
 
 **Methods:** LLM-as-a-Judge (reference-free) · multi-judge median with inter-judge agreement ·
 self-vs-cross-judgment bias reporting · inter-annotator reliability (Cohen's κ) ·
@@ -198,15 +197,23 @@ src/
 results/      experiment outputs + figures
 ```
 
+*Note: some filenames retain stage-numbered prefixes from earlier in the project
+(e.g. `week7_sanity_check_v1.json`) as a historical record; they are referenced by path in code
+and are deliberately left unrenamed.*
+
 ---
 
 ## Roadmap
 
-| Phase | Weeks | Focus | Status |
+| Phase | Stages | Focus | Status |
 |---|---|---|---|
 | 1 · Foundations | 1–6 | Research design, MVP, test set, rubric | ✅ Complete |
-| 2 · Technical core | 7–15 | Prompts, evaluation pipeline, retrieval, demo | 🔄 Week 9 — risk-control rebuild |
+| 2 · Technical core | 7–15 | Prompts, evaluation pipeline, retrieval, BI dashboard, demo | 🔄 Stage 9 — risk-control rebuild |
 | 3 · Product & writing | 16–22 | Public deployment, paper, arXiv | ⏳ Planned |
+
+Planned in Phase 2: an interactive dashboard over the 6,210-point scoring dataset — model ×
+language × dimension slicing, Equitability heatmaps, and drill-down to individual scenarios —
+complementing the static publication figures.
 
 Public deployment will use a static pre-recorded case library by default, with an optional
 rate-limited live layer — so a public demo can't become an unbounded cost surface.
