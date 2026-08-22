@@ -8,128 +8,129 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Status](https://img.shields.io/badge/status-Phase%202%20(Stage%209%2F22)-orange)]()
 [![Providers](https://img.shields.io/badge/LLM%20providers-OpenAI%20%7C%20Anthropic%20%7C%20DeepSeek-4B32C3)]()
-
-> How do you tell whether an LLM handles a German user's grief the way German users actually
-> need — and not merely the way an English-trained model assumes anyone should be comforted?
-> EmpathyLens builds the measurement infrastructure to answer that question, and packages it as
-> a reusable, cost-controlled evaluation toolkit.
+[![Dashboard](https://img.shields.io/badge/Tableau-interactive%20dashboard-E97627?logo=tableau&logoColor=white)](https://public.tableau.com/app/profile/feifan.du/viz/EmpathyLensCross-CulturalEvaluation/1)
 
 **Authors:** Frida Du (Feifan Du) · Helena Cai (Xinyan Cai) — LMU Munich, B.Sc. Computational Linguistics
-**Progress:** Phase 2 · Stage 9 of 22
 
 ---
 
-## Why this matters
+## In one minute
 
-Consumer AI companionship products (Character.ai, Replika, Pi, 猫箱) are trained predominantly
-on English data, then deployed into markets where the norms of *good emotional support* differ
-substantially. American-mainstream support tends toward explicit validation, fairly rapid positive
+Consumer AI companionship products are trained mostly on English data, then deployed into markets
+where the norms of *good emotional support* differ substantially. This project builds the
+infrastructure to **measure that mismatch reliably** — a trilingual test set, a 7-dimension rubric
+as code, and a reference-free LLM-as-a-Judge pipeline that runs under enforced cost controls.
+
+| | |
+|---|---|
+| **Dataset** | 60 items · 20 scenarios × zh/de/en · natively authored, not translated |
+| **Evaluation** | 7 dimensions × 3 judge models, reference-free (no gold answers) |
+| **Scale so far** | 300 responses × 4 prompt conditions → **6,210 scored data points** |
+| **Explore it** | 📊 **[Interactive Tableau dashboard →](https://public.tableau.com/app/profile/feifan.du/viz/EmpathyLensCross-CulturalEvaluation/1)** |
+
+---
+
+## Project status
+
+| Phase | Stages | Focus | Status |
+|---|---|---|---|
+| 1 · Foundations | 1–6 | Research design, MVP, test set, rubric | ✅ Complete |
+| 2 · Technical core | 7–15 | Prompts, evaluation pipeline, retrieval, BI, demo | 🔄 **Stage 9** — risk-control rebuild |
+| 3 · Product & writing | 16–22 | Public deployment, paper, preprint | ⏳ Planned |
+
+**Done:** trilingual dataset · 7-dimension rubric · tri-provider client · full evaluation pipeline ·
+first complete scoring run · tiered cost-control protocol · interactive dashboard
+**Next:** prompt v2 iteration (Stage 9) → lightweight retrieval (10) → statistical analysis (11) →
+commercial product audit (12) → **locked full evaluation (13)** → demo (15) → paper (17–19)
+
+---
+
+## The problem
+
+American-mainstream emotional support tends toward explicit validation, fairly rapid positive
 reframing, and actionable advice. German norms lean toward **acknowledging the negative** before
-offering any silver lining. Chinese norms often prioritize **presence over action** and relational
+offering any silver lining. Chinese norms often prioritize **presence over action**, and relational
 rather than individualist attribution.
 
 A model that applies the first pattern to all three audiences isn't neutral — it is systematically
-mismatched, in a domain where mismatch carries real cost. **Measuring that mismatch reliably is
-the hard part, and that's what this project builds.**
-
-This directly connects to **EU AI Act Article 15** (accuracy and robustness of high-risk AI
-systems): robustness claims that hold only for English-language inputs are not robustness claims
-at all.
+mismatched, in a domain where mismatch carries real cost. This connects directly to
+**EU AI Act Article 15** (accuracy and robustness of high-risk AI systems): robustness that holds
+only for English-language inputs is not robustness.
 
 ---
 
-## What's built (and verified)
+## What's built
 
 | Component | What it does |
 |---|---|
-| **60-item trilingual test set** | 20 scenarios × zh/de/en, natively authored (not translated), covering mild venting / adversarial / control / crisis, with per-item cultural metadata |
-| **7-dimension rubric as code** | `eval/rubrics.py` — dimensions + a closed 14-token intention taxonomy, machine-readable rather than prose-only |
-| **Reference-free LLM-as-a-Judge pipeline** | `eval/run_judge.py` — scores outputs with no gold-standard answers, across three judge models, with self-vs-cross-judgment reporting |
-| **Tri-provider abstraction** | `llm_client.py` — one interface over OpenAI / Anthropic / DeepSeek; evaluation logic stays provider-agnostic |
-| **Tiered, cost-controlled protocol** | Non-bypassable budget caps, active throttling, real-token-usage accounting, code-enforced manual checkpoints |
+| **Trilingual test set** | 20 scenarios × zh/de/en, natively authored; covers mild venting / adversarial / control / crisis, with per-item cultural metadata |
+| **Rubric as code** | `eval/rubrics.py` — 7 dimensions + a closed 14-token intention taxonomy, machine-readable rather than prose-only |
+| **Judge pipeline** | `eval/run_judge.py` — reference-free scoring across 3 judge models, with self-vs-cross-judgment bias reporting |
+| **Tri-provider client** | `llm_client.py` — one interface over OpenAI / Anthropic / DeepSeek, plus real token-usage reporting |
+| **Cost-control protocol** | Tiered runs, non-bypassable budget caps, active throttling, code-enforced manual checkpoints |
 | **Reproducible data pipeline** | Schema validation + Cohen's κ inter-rater reliability, fully scripted |
-
-**Scale of the first full evaluation run:** 300 generated responses × 3 providers × 4 prompt
-conditions, scored on 7 dimensions by 3 independent judge models → 6,210 scored data points.
+| **BI export + dashboard** | `viz/export_for_bi.py` → flat CSVs → interactive Tableau dashboard |
 
 ---
 
-## Two engineering findings worth reading
+## What the data shows
 
-These are the parts a reviewer might actually want to ask about.
+> ⚠️ **Directional, not conclusive.** Single-sample generation (N=1), no significance testing yet,
+> one prompt version. The locked full evaluation these claims stand or fall on is Stage 13.
 
-### 1. Catching a measurement artifact that would have corrupted a core result
+**A country label is not a substitute for cultural calibration.** Adding *"the person lives in
+China"* to an English prompt scores **3.11 / 5** on cultural norm fit, against **4.76** for a
+properly calibrated Chinese prompt. The same gap appears in intention alignment (3.24 vs 4.63).
 
-One experimental condition (`en_geo` — an English prompt plus a country-context label, our strong
-baseline for testing whether a nationality tag alone can substitute for real cultural calibration)
-scored **1.43 / 5** on language naturalness, versus 4.50–4.92 for every other condition.
+**But the universal dimensions hold up.** Empathy, non-judgment, and crisis recognition score
+4.5–4.9 across *all* conditions. Only the culture-dependent dimensions collapse — which is what
+makes this a cultural-mismatch finding rather than a general capability finding.
 
-That looked like a dramatic finding. It wasn't. The judge prompt was being told the target
-language was Chinese/German (inherited from the item's target-culture record), while `en_geo`
-responses are by design always in English. The judge was correctly scoring a contradiction we had
-constructed. Root cause was a conflation of two distinct fields: *the language the response is
-actually in* (which governs naturalness scoring) versus *the cultural norm the response is being
-evaluated against* (which governs cultural-fit scoring). These were separated, with assertion
-tests added.
+**The weakest behaviour isn't where we expected.** D7 (progression & tension handling) is the
+weakest dimension overall. Splitting it by scenario type:
 
-**Why this matters:** the affected condition is precisely the one testing our most interesting
-hypothesis. Publishing a 3-point gap that was an artifact of our own prompt assembly would have
-been considerably worse than the delay of finding it. Contamination scope was then traced
-explicitly — cultural-fit and intention dimensions were unaffected, and the Equitability metric
-never ingested this condition at all.
+| Scenario type | D7 score |
+|---|---|
+| Mild venting | 3.95 |
+| *Direct* pushback — "you're just a machine" | 3.87 |
+| *Indirect* withdrawal — "never mind, you wouldn't get it" | **3.03** |
 
-### 2. Rebuilding the pipeline after a budget failure
+Models handle being challenged head-on — the prompts explicitly cover that. What they miss is a
+user quietly closing the conversation, which the prompts never named.
 
-The first full run issued 300 generation calls plus **6,165 judge calls**, and exhausted the API budget faster than the pipeline's own estimator predicted. Root causes, in order
-of contribution:
-
-1. **Structural over-calling** — the judge was invoked once per *(response × dimension × judge)*: 7 × 3 = 21 calls per response.
-2. **Uncalibrated cost estimation** — hard-coded per-token pricing, never reconciled against invoices.
-3. **A bypassable cap** — `--max-cost-eur` could be overridden with `--yes`.
-4. **No active throttling** — back-off existed only *after* an error.
-
-The fix was structural rather than cosmetic. Judge calls now return all applicable dimensions in a
-single JSON response: **~1/7 the call volume** for identical output data (verified — the rebuilt
-pipeline reproduces the same 6,210-row output schema, and every downstream consumer required zero
-changes). Budget caps became non-bypassable at both per-run and per-day granularity, backed by a
-local ledger using **provider-reported token counts** rather than character-count estimates. Manual
-balance verification became a code-enforced precondition for any full-dataset run.
-
-A side benefit: user disclosures — including crisis-scenario items — were previously embedded up to
-21 times per response across outbound requests. Now 3.
-
-**Why this matters:** the incident is documented here rather than quietly deleted from the commit
-history, because a cost-controlled, auditable evaluation protocol is part of what this project
-claims to deliver. An evaluation framework nobody can afford to run twice isn't reusable.
+**Judges disagree most exactly where scores are lowest.** The country-label condition has both the
+lowest scores *and* the highest inter-judge disagreement (up to 1.73 points). That could mean its
+outputs land in an ambiguous middle ground — or that our rubric is underspecified for it. The
+current data can't distinguish these, and saying so is part of the finding.
 
 ---
 
-## Preliminary findings
+## Engineering highlights
 
-⚠️ **Read as directional, not conclusive.** Single-sample generation (N=1), no significance testing
-yet, one prompt version. The locked full evaluation that these claims will stand or fall on is
-scheduled for Stage 13.
+**Caught a measurement artifact before it became a published result.**
+One condition scored 1.43/5 on language naturalness versus 4.5–4.9 elsewhere — a dramatic-looking
+result. It was ours, not the model's: the judge was told the target language was Chinese/German,
+while that condition's responses are always English by design. Root cause was conflating two
+fields — *the language the response is in* (governs naturalness) versus *the cultural norm it's
+judged against* (governs cultural fit). Fixed, assertion-tested, and contamination scope traced
+explicitly: cultural-fit dimensions were unaffected, and the Equitability metric never ingested
+the condition at all.
 
-- **D7 (progression & tension-handling) is the weakest dimension** across all conditions
-  (4.24 vs 4.56–4.93 for the other six).
-- **The weak point is not where we expected.** Splitting D7 by scenario type: *direct* adversarial
-  input ("you're just a machine") scores **4.45** — the explicit handling written into the prompts
-  works. *Indirect, withdrawing* adversarial input ("never mind, you wouldn't get it") scores
-  **3.65**. Models fall back to reassurance templates when a user quietly closes the conversation,
-  which is exactly the failure mode our framework predicts but the prompts didn't yet name.
-- **Cross-model variance is largest in Chinese** (D7: 3.88–4.95 across the three models), suggesting
-  the Chinese guidance may be less consistently executable across models than the German version.
+**Rebuilt the pipeline after a budget failure.**
+The first full run issued 300 generation + 6,165 judge calls and exhausted the API budget faster
+than the pipeline's own estimator predicted. Four root causes: the judge was invoked once per
+*(response × dimension × judge)* — 21 calls per response; pricing was hard-coded and never
+reconciled against invoices; the budget cap could be overridden with a flag; and back-off only
+existed *after* an error. The fix was structural — judge calls now return all dimensions in one
+JSON response, cutting volume to **~1/7** while reproducing an identical 6,210-row output schema
+with **zero downstream changes**. Budget caps became non-bypassable per-run and per-day, backed by
+a ledger using provider-reported token counts. A side benefit: user disclosures, including
+crisis-scenario items, were previously embedded up to 21 times per response in outbound requests —
+now 3.
 
----
-
-## Tech stack
-
-**Python 3.12** · `openai` · `anthropic` · `pandas` · `matplotlib` · `python-dotenv`
-Planned: `chromadb` (retrieval), `streamlit` (demo app), interactive BI dashboard (Tableau)
-
-**Methods:** LLM-as-a-Judge (reference-free) · multi-judge median with inter-judge agreement ·
-self-vs-cross-judgment bias reporting · inter-annotator reliability (Cohen's κ) ·
-pooled-baseline confounder correction for cross-language score gaps
+*Both are documented rather than quietly rewritten out of the commit history. An evaluation
+framework nobody can afford to run twice isn't reusable, and a measurement artifact you don't catch
+becomes a published mistake.*
 
 ---
 
@@ -142,7 +143,7 @@ pip install -r requirements.txt
 cp .env.example .env          # add your OPENAI / ANTHROPIC / DEEPSEEK keys
 ```
 
-**Verify the dataset and rubric (no API calls, no cost):**
+**Verify the dataset and rubric — no API calls, no cost:**
 
 ```bash
 python -m src.validate_dataset           # 60 records, schema check → expect 0 errors
@@ -156,22 +157,28 @@ python -m src.eval.assemble_judge_input  # judge-input assembler self-test
 python -m src.cli.empathy_cli --text "我妈又催我相亲了,烦死了。"
 ```
 
-**Run the evaluation pipeline (tiered):**
+**Run the evaluation pipeline — tiered by cost:**
 
 ```bash
-# Tier 1 — single judge, 10-item subset: cheapest, run this first after any prompt change
+# Tier 1 — single judge, 10-item subset: run this first after any prompt change
 python -m src.eval.run_judge --tier 1 --gen results/week7_sanity_check_v1.json
 
 # Tier 2 — three judges, same subset: quantitative confirmation
 python -m src.eval.run_judge --tier 2 --gen results/week7_sanity_check_v1.json
 
-# Tier 3 — three judges, full 60 items: final data; requires explicit balance confirmation
+# Tier 3 — three judges, full 60 items: final data, requires explicit balance confirmation
 python -m src.eval.run_judge --tier 3 --gen results/full_gen_v1.json \
     --balance-checked --max-cost-eur 15 --daily-cap-eur 20
 ```
 
-Add `--dry-run` to any command to exercise the full pipeline without spending anything. Budget
-caps have no override flag: if the estimate exceeds the cap, the run exits without spending.
+Add `--dry-run` to exercise the full pipeline without spending anything. Budget caps have no
+override flag: if the estimate exceeds the cap, the run exits without spending.
+
+**Export for BI tools:**
+
+```bash
+python -m src.viz.export_for_bi          # → results/bi/*.csv
+```
 
 ---
 
@@ -193,44 +200,39 @@ src/
     aggregate.py             multi-judge medians, self-vs-cross, Equitability
     budget_ledger.py         persistent cost ledger
   prompts/registry.py   version-locked cultural-mode prompts (native-reviewer approved)
-  viz/                  publication-grade figures
-results/      experiment outputs + figures
+  viz/
+    week8_plots.py        publication-grade static figures
+    export_for_bi.py      flat CSV export for Tableau / Power BI
+results/      experiment outputs, figures, and BI exports
 ```
 
-*Note: some filenames retain stage-numbered prefixes from earlier in the project
-(e.g. `week7_sanity_check_v1.json`) as a historical record; they are referenced by path in code
-and are deliberately left unrenamed.*
+*Some filenames keep stage-numbered prefixes from earlier in the project
+(e.g. `week7_sanity_check_v1.json`) as a historical record; they are referenced by path in code and
+deliberately left unrenamed.*
 
 ---
 
-## Roadmap
+## Methods & stack
 
-| Phase | Stages | Focus | Status |
-|---|---|---|---|
-| 1 · Foundations | 1–6 | Research design, MVP, test set, rubric | ✅ Complete |
-| 2 · Technical core | 7–15 | Prompts, evaluation pipeline, retrieval, BI dashboard, demo | 🔄 Stage 9 — risk-control rebuild |
-| 3 · Product & writing | 16–22 | Public deployment, paper, arXiv | ⏳ Planned |
+**Python 3.12** · `openai` · `anthropic` · `pandas` · `matplotlib` · `python-dotenv` · Tableau
+Planned: `chromadb` (retrieval), `streamlit` (demo app)
 
-Planned in Phase 2: an interactive dashboard over the 6,210-point scoring dataset — model ×
-language × dimension slicing, Equitability heatmaps, and drill-down to individual scenarios —
-complementing the static publication figures.
-
-Public deployment will use a static pre-recorded case library by default, with an optional
-rate-limited live layer — so a public demo can't become an unbounded cost surface.
+LLM-as-a-Judge (reference-free) · multi-judge median with inter-judge agreement ·
+self-vs-cross-judgment bias reporting · inter-annotator reliability (Cohen's κ) ·
+pooled-baseline confounder correction for cross-language score gaps
 
 ---
 
 ## Ethics
 
-This is a research prototype, **not a clinical tool**. All demo surfaces carry that statement
-explicitly. Every cultural-mode prompt embeds crisis recognition and locale-appropriate
-professional referral (Beijing Crisis Intervention Center / Telefonseelsorge / 988). Test data is
-anonymized and authored by the team, not scraped from real users in distress. The paper includes a
-standalone Ethics Statement.
+A research prototype, **not a clinical tool** — every demo surface says so. Each cultural-mode
+prompt embeds crisis recognition and locale-appropriate professional referral (Beijing Crisis
+Intervention Center / Telefonseelsorge / 988). Test data is authored by the team and anonymized,
+not scraped from real users in distress. The paper includes a standalone Ethics Statement.
 
 ---
 
-## Citation
+## Citation & license
 
 ```bibtex
 @misc{du2026empathylens,
@@ -240,9 +242,5 @@ standalone Ethics Statement.
   note   = {LMU Munich. Preprint in preparation.}
 }
 ```
-
----
-
-## License & contact
 
 MIT — see [LICENSE](./LICENSE). Questions, collaboration, or feedback: open an issue.
