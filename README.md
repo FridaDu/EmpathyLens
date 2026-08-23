@@ -8,6 +8,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Status](https://img.shields.io/badge/status-Phase%202%20(Stage%209%2F22)-orange)]()
 [![Providers](https://img.shields.io/badge/LLM%20providers-OpenAI%20%7C%20Anthropic%20%7C%20DeepSeek-4B32C3)]()
+[![CI](https://github.com/FridaDu/EmpathyLens/actions/workflows/ci.yml/badge.svg)](https://github.com/FridaDu/EmpathyLens/actions/workflows/ci.yml)
+[![Docker](https://img.shields.io/badge/Docker-reproducible%20env-2496ED?logo=docker&logoColor=white)](./Dockerfile)
 [![Dashboard](https://img.shields.io/badge/Tableau-interactive%20dashboard-E97627?logo=tableau&logoColor=white)](https://public.tableau.com/app/profile/feifan.du/viz/EmpathyLensCross-CulturalEvaluation/1)
 
 **Authors:** Frida Du (Feifan Du) · Helena Cai (Xinyan Cai) — LMU Munich, B.Sc. Computational Linguistics
@@ -26,6 +28,7 @@ as code, and a reference-free LLM-as-a-Judge pipeline that runs under enforced c
 | **Dataset** | 60 items · 20 scenarios × zh/de/en · natively authored, not translated |
 | **Evaluation** | 7 dimensions × 3 judge models, reference-free (no gold answers) |
 | **Scale so far** | 300 responses × 4 prompt conditions → **6,210 scored data points** |
+| **Reproducibility** | Containerized Linux environment · Make entrypoints · CI on every push |
 | **Explore it** | 📊 **[Interactive Tableau dashboard →](https://public.tableau.com/app/profile/feifan.du/viz/EmpathyLensCross-CulturalEvaluation/1)** |
 
 ---
@@ -70,6 +73,7 @@ only for English-language inputs is not robustness.
 | **Cost-control protocol** | Tiered runs, non-bypassable budget caps, active throttling, code-enforced manual checkpoints |
 | **Reproducible data pipeline** | Schema validation + Cohen's κ inter-rater reliability, fully scripted |
 | **BI export + dashboard** | `viz/export_for_bi.py` → flat CSVs → interactive Tableau dashboard |
+| **Reproducible environment** | Make entrypoints · Bash pre-flight checks · Docker image · GitHub Actions CI on Ubuntu, run on every push |
 
 ---
 
@@ -134,6 +138,79 @@ becomes a published mistake.*
 
 ---
 
+## Reproducibility & tooling
+
+The evaluation pipeline is developed on macOS and runs identically on Linux — in CI containers and
+in Docker. Everything below is in the repo and verifiable.
+
+### Continuous integration
+
+`.github/workflows/ci.yml` runs on an **Ubuntu runner** on every push and pull request:
+
+```
+✓ Dataset schema validation          ✓ Prompt registry version-lock check
+✓ Rubric self-test                   ✓ Budget ledger self-test
+✓ Judge-input assembler self-test    ✓ Full pipeline dry-run (no requests sent)
+✓ Secret-leak guard                  ✓ BI export pipeline
+```
+
+**No API keys are configured in CI, by design.** Real evaluation runs are billable and must happen
+under human supervision per the tiered protocol — letting CI fire paid calls on every push is
+exactly the failure mode this project already recovered from once. The workflow says so in a
+comment, so the omission reads as a decision rather than an oversight.
+
+The secret-leak guard fails the build if `.env` ever gets tracked by git:
+
+```bash
+if git ls-files --error-unmatch .env 2>/dev/null; then
+  echo "::error::.env is tracked by git — API keys may be exposed."
+  exit 1
+fi
+```
+
+### Make as the command surface
+
+Raw pipeline invocations are long and some of them spend money. `make` turns them into short
+commands and encodes the safety rules:
+
+```bash
+make              # list every target, each labelled zero-cost or billable
+make validate     # all local checks — same set CI runs
+make dry-run      # full pipeline logic, zero requests
+make bi           # export flat CSVs for Tableau / Power BI
+make tier1        # billable: single judge, 10-item subset
+make tier3        # billable: full run — prompts for human balance confirmation first
+```
+
+`make tier3` will not proceed without an interactive confirmation that provider balances were
+checked — the risk-control protocol enforced by the tooling, not just documented in a file.
+
+The Python interpreter is resolved at runtime rather than hard-coded, so the same Makefile works
+inside an activated virtualenv, outside one, and in CI:
+
+```makefile
+PYTHON := $(shell [ -x .venv/bin/python ] && echo .venv/bin/python || echo python3)
+```
+
+### Containerized environment
+
+`Dockerfile` builds a Debian-slim image that reproduces the full evaluation environment:
+
+```bash
+make docker-build       # build the image
+make docker-validate    # run the zero-cost checks inside the container
+```
+
+Notable choices: dependencies are installed in a separate layer *before* source is copied, so
+editing code doesn't invalidate the dependency cache; the container runs as a **non-root user**;
+`.dockerignore` excludes `.env`, `.venv`, and `.git` so credentials never enter an image layer; and
+the default `CMD` is the zero-cost validation target — never anything billable.
+
+*This demonstrates Linux tooling and containerization in a real project — not systems
+administration or kernel-level work.*
+
+---
+
 ## Quick start
 
 ```bash
@@ -143,13 +220,15 @@ pip install -r requirements.txt
 cp .env.example .env          # add your OPENAI / ANTHROPIC / DEEPSEEK keys
 ```
 
-**Verify the dataset and rubric — no API calls, no cost:**
+**Verify everything — no API calls, no cost.** These are the same checks CI runs on every push:
 
 ```bash
-python -m src.validate_dataset           # 60 records, schema check → expect 0 errors
-python -m src.eval.rubrics               # 7 dimensions + 14-token intention taxonomy
-python -m src.eval.assemble_judge_input  # judge-input assembler self-test
+make validate     # dataset schema, rubric, judge assembler, prompt registry, budget ledger
+make preflight    # Bash pre-flight: env, keys, data, disk, spend ledger
+make dry-run      # exercise the full evaluation pipeline without sending a single request
 ```
+
+Run `make` on its own to list every available command, each labelled zero-cost or billable.
 
 **Generate responses across the three cultural modes:**
 
@@ -171,13 +250,22 @@ python -m src.eval.run_judge --tier 3 --gen results/full_gen_v1.json \
     --balance-checked --max-cost-eur 15 --daily-cap-eur 20
 ```
 
-Add `--dry-run` to exercise the full pipeline without spending anything. Budget caps have no
-override flag: if the estimate exceeds the cap, the run exits without spending.
+Or via Make — `make tier1` / `make tier2` / `make tier3`. The `tier3` target additionally prompts
+for confirmation that provider balances were checked by a human before it will run at all.
+
+Budget caps have no override flag: if the estimate exceeds the cap, the run exits without spending.
 
 **Export for BI tools:**
 
 ```bash
-python -m src.viz.export_for_bi          # → results/bi/*.csv
+make bi           # → results/bi/*.csv, ready for Tableau / Power BI
+```
+
+**Run it in a container** — verifies the environment reproduces cleanly on any machine:
+
+```bash
+make docker-build
+make docker-validate
 ```
 
 ---
@@ -204,6 +292,10 @@ src/
     week8_plots.py        publication-grade static figures
     export_for_bi.py      flat CSV export for Tableau / Power BI
 results/      experiment outputs, figures, and BI exports
+scripts/preflight.sh       Bash pre-flight checks, gated into the Make targets
+.github/workflows/ci.yml   zero-cost validation on every push (Ubuntu runner)
+Makefile      command entrypoints, labelled zero-cost vs billable
+Dockerfile    reproducible evaluation environment
 ```
 
 *Some filenames keep stage-numbered prefixes from earlier in the project
@@ -212,9 +304,29 @@ deliberately left unrenamed.*
 
 ---
 
+## Environment & tooling
+
+The evaluation pipeline is built to run reproducibly on Linux, and every safeguard is enforced by
+tooling rather than by remembering to be careful.
+
+| | |
+|---|---|
+| **CI** | GitHub Actions on an Ubuntu runner — schema validation, four module self-tests, a pipeline dry-run, and a guard that fails the build if `.env` is ever tracked by git. No API credentials are configured in CI, by design. |
+| **Make** | `make` lists every command, each labelled zero-cost or billable. `make tier3` refuses to start until a Bash pre-flight passes and a human confirms provider balances. |
+| **Bash** | `scripts/preflight.sh` — checks interpreter and dependencies, verifies keys are present *and* not committed, confirms data files and disk headroom, reads the local spend ledger, and applies stricter rules before a full run. Exits 0 / 1 / 2 so Make can gate on it. |
+| **Docker** | `python:3.12-slim` image, non-root user, layer-cached dependency install, `.dockerignore` that keeps `.env` and `.venv` out of the image. `make docker-validate` proves the environment reproduces on a clean machine. |
+
+```bash
+make preflight            # environment + secrets + data + budget checks
+make docker-validate      # same checks, inside a clean container
+```
+
+---
+
 ## Methods & stack
 
 **Python 3.12** · `openai` · `anthropic` · `pandas` · `matplotlib` · `python-dotenv` · Tableau
+**Linux tooling:** Docker (Debian-slim) · GNU Make · GitHub Actions (Ubuntu runners) · Bash / POSIX shell (`sed`, `grep`, `find` for repo-wide refactors) · Git
 Planned: `chromadb` (retrieval), `streamlit` (demo app)
 
 LLM-as-a-Judge (reference-free) · multi-judge median with inter-judge agreement ·

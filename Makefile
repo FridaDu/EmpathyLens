@@ -1,262 +1,84 @@
-# EmpathyLens
-
-**Cross-cultural evaluation infrastructure for LLM outputs — Chinese · German · English**
-
-*跨文化 LLM 输出评估基础设施（中 / 德 / 英）*
-
-[![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Status](https://img.shields.io/badge/status-Phase%202%20(Stage%209%2F22)-orange)]()
-[![Providers](https://img.shields.io/badge/LLM%20providers-OpenAI%20%7C%20Anthropic%20%7C%20DeepSeek-4B32C3)]()
-[![CI](https://github.com/FridaDu/EmpathyLens/actions/workflows/ci.yml/badge.svg)](https://github.com/FridaDu/EmpathyLens/actions/workflows/ci.yml)
-[![Dashboard](https://img.shields.io/badge/Tableau-interactive%20dashboard-E97627?logo=tableau&logoColor=white)](https://public.tableau.com/app/profile/feifan.du/viz/EmpathyLensCross-CulturalEvaluation/1)
-
-**Authors:** Frida Du (Feifan Du) · Helena Cai (Xinyan Cai) — LMU Munich, B.Sc. Computational Linguistics
-
----
-
-## In one minute
-
-Consumer AI companionship products are trained mostly on English data, then deployed into markets
-where the norms of *good emotional support* differ substantially. This project builds the
-infrastructure to **measure that mismatch reliably** — a trilingual test set, a 7-dimension rubric
-as code, and a reference-free LLM-as-a-Judge pipeline that runs under enforced cost controls.
-
-| | |
-|---|---|
-| **Dataset** | 60 items · 20 scenarios × zh/de/en · natively authored, not translated |
-| **Evaluation** | 7 dimensions × 3 judge models, reference-free (no gold answers) |
-| **Scale so far** | 300 responses × 4 prompt conditions → **6,210 scored data points** |
-| **Explore it** | 📊 **[Interactive Tableau dashboard →](https://public.tableau.com/app/profile/feifan.du/viz/EmpathyLensCross-CulturalEvaluation/1)** |
-
----
-
-## Project status
-
-| Phase | Stages | Focus | Status |
-|---|---|---|---|
-| 1 · Foundations | 1–6 | Research design, MVP, test set, rubric | ✅ Complete |
-| 2 · Technical core | 7–15 | Prompts, evaluation pipeline, retrieval, BI, demo | 🔄 **Stage 9** — risk-control rebuild |
-| 3 · Product & writing | 16–22 | Public deployment, paper, preprint | ⏳ Planned |
-
-**Done:** trilingual dataset · 7-dimension rubric · tri-provider client · full evaluation pipeline ·
-first complete scoring run · tiered cost-control protocol · interactive dashboard
-**Next:** prompt v2 iteration (Stage 9) → lightweight retrieval (10) → statistical analysis (11) →
-commercial product audit (12) → **locked full evaluation (13)** → demo (15) → paper (17–19)
-
----
-
-## The problem
-
-American-mainstream emotional support tends toward explicit validation, fairly rapid positive
-reframing, and actionable advice. German norms lean toward **acknowledging the negative** before
-offering any silver lining. Chinese norms often prioritize **presence over action**, and relational
-rather than individualist attribution.
-
-A model that applies the first pattern to all three audiences isn't neutral — it is systematically
-mismatched, in a domain where mismatch carries real cost. This connects directly to
-**EU AI Act Article 15** (accuracy and robustness of high-risk AI systems): robustness that holds
-only for English-language inputs is not robustness.
-
----
-
-## What's built
-
-| Component | What it does |
-|---|---|
-| **Trilingual test set** | 20 scenarios × zh/de/en, natively authored; covers mild venting / adversarial / control / crisis, with per-item cultural metadata |
-| **Rubric as code** | `eval/rubrics.py` — 7 dimensions + a closed 14-token intention taxonomy, machine-readable rather than prose-only |
-| **Judge pipeline** | `eval/run_judge.py` — reference-free scoring across 3 judge models, with self-vs-cross-judgment bias reporting |
-| **Tri-provider client** | `llm_client.py` — one interface over OpenAI / Anthropic / DeepSeek, plus real token-usage reporting |
-| **Cost-control protocol** | Tiered runs, non-bypassable budget caps, active throttling, code-enforced manual checkpoints |
-| **Reproducible data pipeline** | Schema validation + Cohen's κ inter-rater reliability, fully scripted |
-| **BI export + dashboard** | `viz/export_for_bi.py` → flat CSVs → interactive Tableau dashboard |
-| **Reproducible environment** | `Makefile` command entrypoints · Dockerfile · GitHub Actions CI running zero-cost checks on every push |
-
----
-
-## What the data shows
-
-> ⚠️ **Directional, not conclusive.** Single-sample generation (N=1), no significance testing yet,
-> one prompt version. The locked full evaluation these claims stand or fall on is Stage 13.
-
-**A country label is not a substitute for cultural calibration.** Adding *"the person lives in
-China"* to an English prompt scores **3.11 / 5** on cultural norm fit, against **4.76** for a
-properly calibrated Chinese prompt. The same gap appears in intention alignment (3.24 vs 4.63).
-
-**But the universal dimensions hold up.** Empathy, non-judgment, and crisis recognition score
-4.5–4.9 across *all* conditions. Only the culture-dependent dimensions collapse — which is what
-makes this a cultural-mismatch finding rather than a general capability finding.
-
-**The weakest behaviour isn't where we expected.** D7 (progression & tension handling) is the
-weakest dimension overall. Splitting it by scenario type:
-
-| Scenario type | D7 score |
-|---|---|
-| Mild venting | 3.95 |
-| *Direct* pushback — "you're just a machine" | 3.87 |
-| *Indirect* withdrawal — "never mind, you wouldn't get it" | **3.03** |
-
-Models handle being challenged head-on — the prompts explicitly cover that. What they miss is a
-user quietly closing the conversation, which the prompts never named.
-
-**Judges disagree most exactly where scores are lowest.** The country-label condition has both the
-lowest scores *and* the highest inter-judge disagreement (up to 1.73 points). That could mean its
-outputs land in an ambiguous middle ground — or that our rubric is underspecified for it. The
-current data can't distinguish these, and saying so is part of the finding.
-
----
-
-## Engineering highlights
-
-**Caught a measurement artifact before it became a published result.**
-One condition scored 1.43/5 on language naturalness versus 4.5–4.9 elsewhere — a dramatic-looking
-result. It was ours, not the model's: the judge was told the target language was Chinese/German,
-while that condition's responses are always English by design. Root cause was conflating two
-fields — *the language the response is in* (governs naturalness) versus *the cultural norm it's
-judged against* (governs cultural fit). Fixed, assertion-tested, and contamination scope traced
-explicitly: cultural-fit dimensions were unaffected, and the Equitability metric never ingested
-the condition at all.
-
-**Rebuilt the pipeline after a budget failure.**
-The first full run issued 300 generation + 6,165 judge calls and exhausted the API budget faster
-than the pipeline's own estimator predicted. Four root causes: the judge was invoked once per
-*(response × dimension × judge)* — 21 calls per response; pricing was hard-coded and never
-reconciled against invoices; the budget cap could be overridden with a flag; and back-off only
-existed *after* an error. The fix was structural — judge calls now return all dimensions in one
-JSON response, cutting volume to **~1/7** while reproducing an identical 6,210-row output schema
-with **zero downstream changes**. Budget caps became non-bypassable per-run and per-day, backed by
-a ledger using provider-reported token counts. A side benefit: user disclosures, including
-crisis-scenario items, were previously embedded up to 21 times per response in outbound requests —
-now 3.
-
-*Both are documented rather than quietly rewritten out of the commit history. An evaluation
-framework nobody can afford to run twice isn't reusable, and a measurement artifact you don't catch
-becomes a published mistake.*
-
----
-
-## Quick start
-
-```bash
-git clone https://github.com/FridaDu/EmpathyLens.git && cd EmpathyLens
-python3.12 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env          # add your OPENAI / ANTHROPIC / DEEPSEEK keys
-```
-
-**Verify everything — no API calls, no cost.** These are the same checks CI runs on every push:
-
-```bash
-make validate     # dataset schema, rubric, judge assembler, prompt registry, budget ledger
-make dry-run      # exercise the full evaluation pipeline without sending a single request
-```
-
-Run `make` on its own to list every available command, each labelled zero-cost or billable.
-
-**Generate responses across the three cultural modes:**
-
-```bash
-python -m src.cli.empathy_cli --text "我妈又催我相亲了,烦死了。"
-```
-
-**Run the evaluation pipeline — tiered by cost:**
-
-```bash
-# Tier 1 — single judge, 10-item subset: run this first after any prompt change
-python -m src.eval.run_judge --tier 1 --gen results/week7_sanity_check_v1.json
-
-# Tier 2 — three judges, same subset: quantitative confirmation
-python -m src.eval.run_judge --tier 2 --gen results/week7_sanity_check_v1.json
-
-# Tier 3 — three judges, full 60 items: final data, requires explicit balance confirmation
-python -m src.eval.run_judge --tier 3 --gen results/full_gen_v1.json \
-    --balance-checked --max-cost-eur 15 --daily-cap-eur 20
-```
-
-Or via Make — `make tier1` / `make tier2` / `make tier3`. The `tier3` target additionally prompts
-for confirmation that provider balances were checked by a human before it will run at all.
-
-Budget caps have no override flag: if the estimate exceeds the cap, the run exits without spending.
-
-**Export for BI tools:**
-
-```bash
-make bi           # → results/bi/*.csv, ready for Tableau / Power BI
-```
-
-**Run it in a container** — verifies the environment reproduces cleanly on any machine:
-
-```bash
-make docker-build
-make docker-validate
-```
-
----
-
-## Repository structure
-
-```
-data/         dataset_draft.json — 60-item trilingual test set (source of truth)
-annotations/  annotation CSVs + Cohen's κ pilot rounds
-docs/         methodology decision log, annotation guidelines, rubric spec, budget tracking
-src/
-  dataset.py            schema / controlled vocabulary / loader
-  validate_dataset.py   structure & schema validator
-  compute_kappa.py      inter-rater reliability
-  llm_client.py         unified tri-provider client (+ token-usage reporting)
-  eval/
-    rubrics.py               machine-readable 7-dimension rubric + intention taxonomy
-    assemble_judge_input.py  judge-input assembler (one call → all applicable dimensions)
-    run_judge.py             tiered evaluation runner with enforced budget caps
-    aggregate.py             multi-judge medians, self-vs-cross, Equitability
-    budget_ledger.py         persistent cost ledger
-  prompts/registry.py   version-locked cultural-mode prompts (native-reviewer approved)
-  viz/
-    week8_plots.py        publication-grade static figures
-    export_for_bi.py      flat CSV export for Tableau / Power BI
-results/      experiment outputs, figures, and BI exports
-.github/workflows/ci.yml   zero-cost validation on every push (Ubuntu runner)
-Makefile      command entrypoints, labelled zero-cost vs billable
-Dockerfile    reproducible evaluation environment
-```
-
-*Some filenames keep stage-numbered prefixes from earlier in the project
-(e.g. `week7_sanity_check_v1.json`) as a historical record; they are referenced by path in code and
-deliberately left unrenamed.*
-
----
-
-## Methods & stack
-
-**Python 3.12** · `openai` · `anthropic` · `pandas` · `matplotlib` · `python-dotenv` · Tableau
-**Tooling:** Make · Docker · GitHub Actions (Ubuntu) · Git
-Planned: `chromadb` (retrieval), `streamlit` (demo app)
-
-LLM-as-a-Judge (reference-free) · multi-judge median with inter-judge agreement ·
-self-vs-cross-judgment bias reporting · inter-annotator reliability (Cohen's κ) ·
-pooled-baseline confounder correction for cross-language score gaps
-
----
-
-## Ethics
-
-A research prototype, **not a clinical tool** — every demo surface says so. Each cultural-mode
-prompt embeds crisis recognition and locale-appropriate professional referral (Beijing Crisis
-Intervention Center / Telefonseelsorge / 988). Test data is authored by the team and anonymized,
-not scraped from real users in distress. The paper includes a standalone Ethics Statement.
-
----
-
-## Citation & license
-
-```bibtex
-@misc{du2026empathylens,
-  author = {Du, Feifan and Cai, Xinyan},
-  title  = {EmpathyLens: A Cross-Cultural Evaluation Framework for AI Emotional Companionship},
-  year   = {2026},
-  note   = {LMU Munich. Preprint in preparation.}
-}
-```
-
-MIT — see [LICENSE](./LICENSE). Questions, collaboration, or feedback: open an issue.
+# EmpathyLens — 常用命令入口
+#
+# 为什么用 Makefile：评估管道的命令又长又带危险参数（Tier 3 会真花钱），
+# 靠记忆敲容易出错。这里把安全的操作做成短命令，把危险的操作加上确认。
+#
+# 用法：make            → 列出所有可用命令
+#       make validate   → 跑全部零成本校验
+#
+# 约定：以 "零成本" 标注的目标不发起任何 API 请求，可随意重复运行。
+
+PYTHON := python
+GEN_SANITY := results/week7_sanity_check_v1.json
+GEN_FULL := results/full_gen_v1.json
+
+.DEFAULT_GOAL := help
+.PHONY: help install validate preflight dry-run bi figures tier1 tier2 tier3 ledger clean docker-build docker-validate
+
+help:  ## 列出所有可用命令
+	@echo ""
+	@echo "EmpathyLens — 可用命令："
+	@echo ""
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
+		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
+	@echo ""
+
+install:  ## 创建虚拟环境并安装依赖
+	$(PYTHON) -m venv .venv
+	.venv/bin/pip install --upgrade pip
+	.venv/bin/pip install -r requirements.txt
+	@echo "✅ 完成。激活环境： source .venv/bin/activate"
+
+validate:  ## 【零成本】跑全部本地校验（CI 跑的也是这些）
+	$(PYTHON) -m src.validate_dataset
+	$(PYTHON) -m src.eval.rubrics
+	$(PYTHON) -m src.eval.assemble_judge_input
+	$(PYTHON) -m src.prompts.registry
+	$(PYTHON) -m src.eval.budget_ledger
+	@echo "✅ 全部校验通过"
+
+preflight:  ## 【零成本】跑批前的 Bash 预检（环境/密钥/数据/磁盘/台账）
+	./scripts/preflight.sh
+
+dry-run:  ## 【零成本】完整跑一遍评估管道逻辑，但不发任何 API 请求
+	$(PYTHON) -m src.eval.run_judge --tier 1 --gen $(GEN_SANITY) --dry-run --out /tmp/dryrun_scores.json
+
+bi:  ## 【零成本】导出 Tableau / Power BI 可用的扁平 CSV
+	$(PYTHON) -m src.viz.export_for_bi
+
+figures:  ## 【零成本】生成出版级静态图表
+	$(PYTHON) -m src.viz.week8_plots
+
+ledger:  ## 【零成本】查看本地 API 消费台账
+	$(PYTHON) -m src.eval.budget_ledger
+
+tier1:  ## 【会计费·少量】Tier 1 评估：单裁判 × 10 条子集
+	@./scripts/preflight.sh || [ $$? -eq 2 ]
+	$(PYTHON) -m src.eval.run_judge --tier 1 --gen $(GEN_SANITY)
+
+tier2:  ## 【会计费·中等】Tier 2 评估：三裁判 × 10 条子集
+	@./scripts/preflight.sh || [ $$? -eq 2 ]
+	$(PYTHON) -m src.eval.run_judge --tier 2 --gen $(GEN_SANITY)
+
+tier3:  ## 【会计费·全量！】Tier 3 锁定评估：三裁判 × 60 条，需人工确认余额
+	@echo ""
+	@./scripts/preflight.sh --tier3 || [ $$? -eq 2 ]
+	@echo "⚠️  Tier 3 是全量锁定评估，按协议整个项目周期内只计划跑一次。"
+	@echo "    开跑前必须：登录三家平台后台核对实时余额，预留 ≥1.5 倍预估费用。"
+	@echo ""
+	@read -p "已完成人工余额核对了吗？输入 yes 继续：" ans; \
+	if [ "$$ans" != "yes" ]; then echo "已取消。"; exit 1; fi
+	$(PYTHON) -m src.eval.run_judge --tier 3 --gen $(GEN_FULL) \
+		--balance-checked --max-cost-eur 15 --daily-cap-eur 20
+
+clean:  ## 清理临时产物（不动 results/ 里的实验数据）
+	find . -type d -name __pycache__ -not -path "./.venv/*" -exec rm -rf {} + 2>/dev/null || true
+	find . -type f -name "*.pyc" -not -path "./.venv/*" -delete
+	rm -rf /tmp/dryrun_scores.json /tmp/ci_bi
+	@echo "✅ 已清理"
+
+docker-build:  ## 构建 Docker 镜像
+	docker build -t empathylens:latest .
+
+docker-validate:  ## 在容器里跑零成本校验（验证环境可复现）
+	docker run --rm empathylens:latest
