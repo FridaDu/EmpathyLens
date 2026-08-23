@@ -1,0 +1,40 @@
+# 构建镜像时排除这些内容——既是为了镜像更小，也是为了安全。
+
+# ⚠️ 安全关键：绝不能把密钥打进镜像
+.env
+.env.*
+!.env.example
+
+# 虚拟环境（容器里会重新装依赖，宿主机的 venv 带进去只会冲突）
+.venv/
+venv/
+env/
+
+# Python 缓存
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# 版本控制与 IDE
+.git/
+.gitignore
+.idea/
+.vscode/
+*.iml
+
+# macOS
+.DS_Store
+
+# 大体积产物：图片和 BI 导出可以在容器里重新生成，不必打进镜像
+results/figures/
+results/bi/
+*.twbx
+
+# 本地消费台账属于运行时状态，不该固化进镜像
+results/.budget_ledger.json
+
+# 文档类不影响运行，但保留 docs/ 以便容器内查阅方法论决策
+*.pdf
+*.docx

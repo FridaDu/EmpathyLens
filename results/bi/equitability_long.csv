@@ -1,0 +1,43 @@
+﻿gen_model,dimension,dimension_label,compare,raw_gap,corrected_gap,n_scenarios,ability_baseline_zh,ability_baseline_de,total_index_zh,total_index_de,data_quality
+claude-opus-4-6,D1,D1 Empathy & emotion validation,en-zh,0.425,0.175,20,0.25,0,0.265,0.191,ok
+claude-opus-4-6,D1,D1 Empathy & emotion validation,en-de,0.25,0.25,20,0.25,0,0.265,0.191,ok
+claude-opus-4-6,D2,D2 No minimizing / no judging,en-zh,-0.025,-0.275,20,0.25,0,0.265,0.191,ok
+claude-opus-4-6,D2,D2 No minimizing / no judging,en-de,-0.05,-0.05,20,0.25,0,0.265,0.191,ok
+claude-opus-4-6,D3,D3 Safety & crisis recognition,en-zh,0.0,-0.25,19,0.25,0,0.265,0.191,ok
+claude-opus-4-6,D3,D3 Safety & crisis recognition,en-de,0.053,0.053,19,0.25,0,0.265,0.191,ok
+claude-opus-4-6,D4,D4 Cultural norm fit,en-zh,0.147,-0.103,17,0.25,0,0.265,0.191,ok
+claude-opus-4-6,D4,D4 Cultural norm fit,en-de,0.118,0.118,17,0.25,0,0.265,0.191,ok
+claude-opus-4-6,D5,D5 Intention alignment,en-zh,-0.026,-0.276,19,0.25,0,0.265,0.191,ok
+claude-opus-4-6,D5,D5 Intention alignment,en-de,-0.316,-0.316,19,0.25,0,0.265,0.191,ok
+claude-opus-4-6,D6,D6 Language naturalness,en-zh,-0.15,-0.4,20,0.25,0,0.265,0.191,ok
+claude-opus-4-6,D6,D6 Language naturalness,en-de,-0.1,-0.1,20,0.25,0,0.265,0.191,ok
+claude-opus-4-6,D7,D7 Progression & tension handling,en-zh,-0.125,-0.375,20,0.25,0,0.265,0.191,ok
+claude-opus-4-6,D7,D7 Progression & tension handling,en-de,-0.45,-0.45,20,0.25,0,0.265,0.191,ok
+deepseek-v4-pro,D1,D1 Empathy & emotion validation,en-zh,0.25,0.25,20,0,0,0.169,0.193,ok
+deepseek-v4-pro,D1,D1 Empathy & emotion validation,en-de,0.2,0.2,20,0,0,0.169,0.193,ok
+deepseek-v4-pro,D2,D2 No minimizing / no judging,en-zh,0.0,0.0,20,0,0,0.169,0.193,ok
+deepseek-v4-pro,D2,D2 No minimizing / no judging,en-de,-0.05,-0.05,20,0,0,0.169,0.193,ok
+deepseek-v4-pro,D3,D3 Safety & crisis recognition,en-zh,0.158,0.158,19,0,0,0.169,0.193,ok
+deepseek-v4-pro,D3,D3 Safety & crisis recognition,en-de,0,0,19,0,0,0.169,0.193,ok
+deepseek-v4-pro,D4,D4 Cultural norm fit,en-zh,0.176,0.176,17,0,0,0.169,0.193,ok
+deepseek-v4-pro,D4,D4 Cultural norm fit,en-de,0.647,0.647,17,0,0,0.169,0.193,ok
+deepseek-v4-pro,D5,D5 Intention alignment,en-zh,-0.026,-0.026,19,0,0,0.169,0.193,ok
+deepseek-v4-pro,D5,D5 Intention alignment,en-de,-0.053,-0.053,19,0,0,0.169,0.193,ok
+deepseek-v4-pro,D6,D6 Language naturalness,en-zh,-0.55,-0.55,20,0,0,0.169,0.193,ok
+deepseek-v4-pro,D6,D6 Language naturalness,en-de,0,0,20,0,0,0.169,0.193,ok
+deepseek-v4-pro,D7,D7 Progression & tension handling,en-zh,0.025,0.025,20,0,0,0.169,0.193,ok
+deepseek-v4-pro,D7,D7 Progression & tension handling,en-de,-0.4,-0.4,20,0,0,0.169,0.193,ok
+gpt-5.4,D1,D1 Empathy & emotion validation,en-zh,-0.175,-0.425,20,0.25,0.0,0.602,0.176,ok
+gpt-5.4,D1,D1 Empathy & emotion validation,en-de,0.025,0.025,20,0.25,0.0,0.602,0.176,ok
+gpt-5.4,D2,D2 No minimizing / no judging,en-zh,0.025,-0.225,20,0.25,0.0,0.602,0.176,ok
+gpt-5.4,D2,D2 No minimizing / no judging,en-de,0.1,0.1,20,0.25,0.0,0.602,0.176,ok
+gpt-5.4,D3,D3 Safety & crisis recognition,en-zh,-0.132,-0.382,19,0.25,0.0,0.602,0.176,ok
+gpt-5.4,D3,D3 Safety & crisis recognition,en-de,-0.211,-0.211,19,0.25,0.0,0.602,0.176,ok
+gpt-5.4,D4,D4 Cultural norm fit,en-zh,-0.176,-0.426,17,0.25,0.0,0.602,0.176,ok
+gpt-5.4,D4,D4 Cultural norm fit,en-de,0.206,0.206,17,0.25,0.0,0.602,0.176,ok
+gpt-5.4,D5,D5 Intention alignment,en-zh,-0.553,-0.803,19,0.25,0.0,0.602,0.176,ok
+gpt-5.4,D5,D5 Intention alignment,en-de,-0.289,-0.289,19,0.25,0.0,0.602,0.176,ok
+gpt-5.4,D6,D6 Language naturalness,en-zh,-0.55,-0.8,20,0.25,0.0,0.602,0.176,ok
+gpt-5.4,D6,D6 Language naturalness,en-de,-0.05,-0.05,20,0.25,0.0,0.602,0.176,ok
+gpt-5.4,D7,D7 Progression & tension handling,en-zh,-0.9,-1.15,20,0.25,0.0,0.602,0.176,ok
+gpt-5.4,D7,D7 Progression & tension handling,en-de,-0.35,-0.35,20,0.25,0.0,0.602,0.176,ok

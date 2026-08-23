@@ -1,0 +1,86 @@
+name: CI
+
+# 何时触发：推送到主分支、以及针对主分支的 PR。
+# 手动触发（workflow_dispatch）也保留，方便调试 CI 本身而不用凑一次 push。
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+# ⚠️ 本 CI 刻意【不配置任何 API 密钥】(没有 secrets 引用、没有 env 注入)。
+# 所有步骤都是零成本的本地校验：schema 校验、rubric 自测、prompt 装配自测、dry-run 管道。
+# 这是有意的设计决定，不是遗漏——评估管道的真实调用必须在人工盯守下按 Tier 协议执行
+# (见 docs/methodology_notes.md §10)，绝不能由 CI 在每次 push 时自动触发计费调用。
+
+jobs:
+  checks:
+    name: Zero-cost validation (Ubuntu)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Guard — no secrets committed
+        # .env 必须被 gitignore；若它出现在版本库里，立刻失败。
+        # 这比事后发现密钥泄露要便宜得多。
+        run: |
+          if git ls-files --error-unmatch .env 2>/dev/null; then
+            echo "::error::.env is tracked by git — API keys may be exposed. Remove it and add to .gitignore."
+            exit 1
+          fi
+          echo "OK: .env is not tracked."
+
+      - name: Validate dataset schema
+        # 60 条三语数据集的结构与受控词表校验
+        run: python -m src.validate_dataset
+
+      - name: Self-test evaluation rubric
+        # 7 维 rubric + 14 token 意图受控词表
+        run: python -m src.eval.rubrics
+
+      - name: Self-test judge-input assembler
+        # 含 en_geo D6 语言画像修复的断言测试
+        run: python -m src.eval.assemble_judge_input
+
+      - name: Self-test prompt registry
+        # 版本锁定校验：v1 四套 prompt 文本冻结、非法组合显式报错
+        run: python -m src.prompts.registry
+
+      - name: Self-test budget ledger
+        run: python -m src.eval.budget_ledger
+
+      - name: Dry-run the evaluation pipeline (no API calls)
+        # --dry-run 走完整管道逻辑但不发任何请求；写到临时路径，不污染 results/
+        run: |
+          python -m src.eval.run_judge \
+            --tier 1 \
+            --gen results/week7_sanity_check_v1.json \
+            --dry-run \
+            --out /tmp/ci_scores_dryrun.json
+
+      - name: Export BI-ready CSVs
+        # 验证 BI 导出链路可用（纯本地转换）
+        run: python -m src.viz.export_for_bi --outdir /tmp/ci_bi
+
+      - name: Summary
+        run: |
+          echo "### ✅ All zero-cost checks passed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Dataset schema, rubric, judge-input assembler, prompt registry," >> $GITHUB_STEP_SUMMARY
+          echo "budget ledger, pipeline dry-run, and BI export all verified." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "_No API keys are configured in CI by design — see workflow comments._" >> $GITHUB_STEP_SUMMARY
