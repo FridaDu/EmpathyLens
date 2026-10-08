@@ -12,7 +12,7 @@
 [![Docker](https://img.shields.io/badge/Docker-reproducible%20env-2496ED?logo=docker&logoColor=white)](./Dockerfile)
 [![Dashboard](https://img.shields.io/badge/Tableau-interactive%20dashboard-E97627?logo=tableau&logoColor=white)](https://public.tableau.com/app/profile/feifan.du/viz/EmpathyLensCross-CulturalEvaluation/1)
 
-**Authors:** Frida Du (Feifan Du) · Helena Cai (Xinyan Cai) — LMU Munich, B.Sc. Computational Linguistics
+**Authors:** Frida Du (Feifan Du) — LMU Munich, B.Sc. Computational Linguistics | Xinyan Cai — LMU Munich, M.Sc. Computational Linguistics
 
 ---
 
